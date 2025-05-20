@@ -4,3 +4,8 @@
 
 # OS
 .DS_Store
+
+# Config File
+.env
+.env.prod
+.env.dev
