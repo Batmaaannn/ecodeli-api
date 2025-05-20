@@ -28,7 +28,7 @@ export class AuthController {
 
     const user = await this.usersService.getMyUser(id);
 
-    if (!user.email_verified_at)
+    if (!user)
       throw new HttpException("Unauthorized", HttpStatus.FORBIDDEN);
 
     return this.authService.login(user);

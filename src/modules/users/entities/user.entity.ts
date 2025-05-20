@@ -16,12 +16,6 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column({ nullable: true })
-  email_verified_at?: Date;
-
-  @Column({ nullable: true })
-  validation_token?: string;
-
   @Exclude()
   @Column()
   password: string;
