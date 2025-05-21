@@ -19,14 +19,17 @@ export class RegistrationRequest {
   @Column({ nullable: true, unique: true })
   token_request: string;
 
+  @Column({ unique: true })
+  email: string;
+
   @Column()
   company_name: string;
 
   @Column()
   company_address: string;
 
-  @Column({ nullable: true })
-  company_city?: string;
+  @Column()
+  company_city: string;
 
   @Column()
   first_name: string;
@@ -47,7 +50,7 @@ export class RegistrationRequest {
   @Column("text", { array: true, nullable: true })
   prestations?: string[];
 
-  @Column({ unique: true })
+  @Column({ nullable: true, unique: true })
   driving_license?: string;
 
   @Column({

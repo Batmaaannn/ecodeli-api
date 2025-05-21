@@ -1,8 +1,8 @@
 import { HttpException, HttpStatus } from "@nestjs/common";
 import axios from "axios";
-import _memoize from "lodash/memoize";
-import config from "../config";
-import { Environments } from "../types/environments";
+import _memoize = require("lodash/memoize");
+import config from "src/config";
+import { Environments } from "src/types/environments";
 
 const blacklistedDomains =
   "https://raw.githubusercontent.com/martenson/disposable-email-domains/master/disposable_email_blocklist.conf";
@@ -18,7 +18,7 @@ export const fetchMailsBlacklist = _memoize(async () => {
 });
 
 export async function isBlacklisted(email: string): Promise<void> {
-  const authorizedBlacklistEmails = [Environments.PROD];
+  const authorizedBlacklistEmails = [Environments.DEV];
   if (authorizedBlacklistEmails.indexOf(config.environment as Environments))
     return;
 
