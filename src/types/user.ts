@@ -6,6 +6,11 @@ export enum UserType {
   MERCHANT = "MERCHANT",
 }
 
+export enum AgentType {
+  DELIVERY_AGENT = "DELIVERY_AGENT",
+  SERVICE_AGENT = "SERVICE_AGENT",
+}
+
 interface BaseUser {
   id: number;
   email: string;
