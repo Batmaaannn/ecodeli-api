@@ -110,21 +110,46 @@ export class RegistrationRequestsService {
     return this.registrationRequestRepository.save(serviceAgentToCreate);
   }
 
-    async insertOneDeliveryAgentRequest(
-        deliveryAgentToCreate: Pick<
-        RegistrationRequest,
-        | "siret"
-        | "first_name"
-        | "last_name"
-        | "email"
-        | "phone_number"
-        | "driving_license"
-        | "agent_type"
-        | "vehicle_type"
-        | "is_processed"
-        | "token_request"
-        >
-    ): Promise<RegistrationRequest> {
-        return this.registrationRequestRepository.save(deliveryAgentToCreate);
-    }
+  async insertOneDeliveryAgentRequest(
+    deliveryAgentToCreate: Pick<
+      RegistrationRequest,
+      | "siret"
+      | "first_name"
+      | "last_name"
+      | "email"
+      | "phone_number"
+      | "driving_license"
+      | "agent_type"
+      | "vehicle_type"
+      | "is_processed"
+      | "token_request"
+    >
+  ): Promise<RegistrationRequest> {
+    return this.registrationRequestRepository.save(deliveryAgentToCreate);
+  }
+
+  // Update pharmacistRequest when validation form
+  async updateServiceAgentRequest(
+    token_request: string,
+    pharmacistToUpdate: Pick<
+      RegistrationRequest,
+      | "siret"
+      | "first_name"
+      | "last_name"
+      | "email"
+      | "phone_number"
+      | "company_name"
+      | "company_address"
+      | "company_city"
+      | "agent_type"
+      | "prestations"
+      | "is_processed"
+      | "token_request"
+    >
+  ) {
+    await this.registrationRequestRepository.update(
+      { token_request },
+      pharmacistToUpdate
+    );
+  }
 }

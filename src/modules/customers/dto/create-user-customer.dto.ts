@@ -18,7 +18,4 @@ export class CreateUserCustomerDto {
   @ApiProperty()
   @IsNotEmpty()
   password: string;
-
-  @ApiProperty()
-  city?: string;
 }

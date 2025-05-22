@@ -35,7 +35,7 @@ export class Merchant {
   @Column()
   phone_number: string;
 
-  @OneToOne(() => User, (user) => user.merchants, { onDelete: "CASCADE" })
+  @OneToOne(() => User, (user) => user.merchant, { onDelete: "CASCADE" })
   @JoinColumn({ name: "user_id" })
   user?: User;
   @Column({ nullable: true })

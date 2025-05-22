@@ -8,7 +8,7 @@ import {
 import { JwtService } from "@nestjs/jwt";
 import { UsersService } from "../users/users.service";
 import { User, UserType } from "src/types/user";
-import bcrypt from "bcrypt";
+import * as bcrypt from "bcrypt";
 
 @Injectable()
 export class AuthService {
@@ -51,7 +51,7 @@ export class AuthService {
   }
 
   login(user: User) {
-    const accessToken = this.generateAccessToken({
+    return this.generateAccessToken({
       userId: user.id,
       userEmail: user.email,
       userType: user.user_type,

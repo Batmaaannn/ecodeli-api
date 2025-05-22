@@ -50,12 +50,12 @@ export class User {
   @RelationId((user: User) => user.delivery_agent)
   service_agent_id?: number;
 
-  @OneToOne(() => Merchant, (merchants) => merchants.user, {
+  @OneToOne(() => Merchant, (merchant) => merchant.user, {
     nullable: true,
   })
-  merchants?: Merchant;
-  @RelationId((user: User) => user.merchants)
-  merchants_id?: number;
+  merchant?: Merchant;
+  @RelationId((user: User) => user.merchant)
+  merchant_id?: number;
 
   @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
   created_at: Date;
