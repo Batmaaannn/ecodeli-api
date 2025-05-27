@@ -1,9 +1,11 @@
+import { Review } from "src/modules/reviews/entities/reviews.entity";
 import { User } from "src/modules/users/entities/user.entity";
 import {
   Column,
   CreateDateColumn,
   Entity,
   JoinColumn,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -44,11 +46,8 @@ export class ServiceAgent {
   @Column({ nullable: true })
   user_id?: number;
 
-  //ManyToOne Prestations
-
-  //OneToMany
-  //   @Column({ nullable: true })
-  //   rating?: string;
+  @OneToMany(() => Review, (review) => review.serviceAgent)
+  reviews: Review[];
 
   @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
   created_at: Date;

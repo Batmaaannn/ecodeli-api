@@ -12,6 +12,8 @@ import { CustomersModule } from "./modules/customers/customers.module";
 import { DeliveryAgentsModule } from "./modules/delivery-agents/delivery-agents.module";
 import { ServiceAgentsModule } from "./modules/service-agents/service-agents.module";
 import { MerchantsModule } from "./modules/merchants/merchants.module";
+import { PrestationsModule } from "./modules/prestations/prestations.module";
+import { ReviewsModule } from "./modules/reviews/reviews.module";
 
 @Module({
   imports: [
@@ -38,6 +40,8 @@ import { MerchantsModule } from "./modules/merchants/merchants.module";
     DeliveryAgentsModule,
     ServiceAgentsModule,
     MerchantsModule,
+    PrestationsModule,
+    ReviewsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

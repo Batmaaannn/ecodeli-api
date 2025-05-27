@@ -1,9 +1,11 @@
+import { Review } from "src/modules/reviews/entities/reviews.entity";
 import { User } from "src/modules/users/entities/user.entity";
 import {
   Column,
   CreateDateColumn,
   Entity,
   JoinColumn,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -40,6 +42,9 @@ export class Customer {
   user?: User;
   @Column({ nullable: true })
   user_id?: number;
+
+  @OneToMany(() => Review, (review) => review.customer)
+  reviews: Review[];
 
   @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
   created_at: Date;
