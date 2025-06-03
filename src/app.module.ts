@@ -4,8 +4,6 @@ import { AppService } from "./app.service";
 import { UsersModule } from "./modules/users/users.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { ConfigModule, ConfigService } from "@nestjs/config";
-import { postgresDataSourceConfig } from "./config/postgres.database.config";
 import config from "./config";
 import { RegistrationRequestsModule } from "./modules/registration-requests/registration-requests.module";
 import { CustomersModule } from "./modules/customers/customers.module";
@@ -17,12 +15,6 @@ import { ReviewsModule } from "./modules/reviews/reviews.module";
 
 @Module({
   imports: [
-    // TypeOrmModule.forRootAsync({
-    //   imports: [ConfigModule],
-    //   useFactory: (configService: ConfigService) =>
-    //     postgresDataSourceConfig(configService),
-    //   inject: [ConfigService],
-    // }),
     TypeOrmModule.forRoot({
       type: "postgres",
       host: config.postgres_database.host,
@@ -40,8 +32,8 @@ import { ReviewsModule } from "./modules/reviews/reviews.module";
     DeliveryAgentsModule,
     ServiceAgentsModule,
     MerchantsModule,
-    PrestationsModule,
     ReviewsModule,
+    PrestationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
