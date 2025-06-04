@@ -1,99 +1,104 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+## Prérequis
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+- Node 18+
+- Docker
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
-
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
+## Installation
 
 ```bash
-$ npm install
+git clone git@github.com:Batmaaannn/ecodeli-api.git
 ```
 
-## Compile and run the project
+Ajouter le CSV dans le dossier data :
+
+- [Prestations]() <br />
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+make dev-setup
 ```
 
-## Run tests
+Afin de faire fonctionner l'upload de fichier, se connecter au container de Minio et créer un bucket nommé `ecodeli-dev`
+
+## Makefile Commandes
 
 ```bash
-# unit tests
-$ npm run test
+# Démarrer le container
+make dev-setup
 
-# e2e tests
-$ npm run test:e2e
+# Stop le container
+make dev-stop
 
-# test coverage
-$ npm run test:cov
+# Purger le système
+make dev-clean
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## Seeds / Factories
 
 ```bash
-$ npm install -g mau
-$ mau deploy
+# Pour run les fakes datas ( Prestations )
+npm run seed:run
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Pour créer des fakes datas, n'hésitez pas à suivre la procédure du lien juste en dessous ⬇️
 
-## Resources
+[Pour en apprendre plus sur les seeds et factories](https://www.npmjs.com/package/typeorm-seeding)
 
-Check out a few resources that may come in handy when working with NestJS:
+## Guards ( Customer / ServiceAgent / DeliveryAgent / Merchant )
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Par défaut toutes les routes sont sécurisées, il faut donc utiliser le decorator `@Public()` pour rendre une route disponible sans Auth.
 
-## Support
+```js
+import { Public } from './auth/decorator/public.decorator';
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+@Public()
+@Get()
+getHello(): string {
+return this.appService.getHello();
+}
+```
 
-## Stay in touch
+Il y'a également un decorator `@Roles()` qui permet de définir quel rôle est autorisé à accéder à cette route ( Customer / ServiceAgent / DeliveryAgent / Merchant )
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```js
+@Roles(UserType.CUSTOMER)
+@Get()
+findAll() {
+    return this.usersService.findAll();
+}
+```
 
-## License
+## Utilitaire
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+```bash
+# Pour supprimer toutes les tables
+npm run schema:drop
+
+# Pour sync toutes les tables
+npm run schema:sync
+```
+
+Il y'a également un Makefile qui peut être modifié afin d'y ajouter des commandes répétitives si nécessaire.
+
+## Informations
+
+### NestJs
+
+> <http://localhost:3000>
+
+### Swagger
+
+> <http://localhost:3000/api>
+
+### Minio
+
+[Minio](https://min.io/) est un S3-like permettant de simuler le storage S3 d'OVH Cloud (ou d'AWS) <br />
+Pour se connecter à l'interface graphique, se rendre sur : <br />
+
+> <http://localhost:9000>
+
+Les credentials sont les suivants: <br />
+
+- username : minio
+- password : minio123
+
+Attention, il faut un bucket nommé `ecodeli-dev`
