@@ -1,6 +1,3 @@
-import { Customer } from "src/modules/customers/entities/customer.entity";
-import { DeliveryAgent } from "src/modules/delivery-agents/entities/delivery-agents.entity";
-import { Merchant } from "src/modules/merchants/entities/merchants.entity";
 import { ServiceAgent } from "src/modules/service-agents/entities/service-agents.entity";
 
 import { setSeederFactory } from "typeorm-extension";
@@ -31,5 +28,6 @@ export default setSeederFactory(ServiceAgent, (faker) => {
   serviceAgent.phone_number = telephone;
   serviceAgent.address = address;
 
+  console.log(serviceAgent);
   return serviceAgent;
 });

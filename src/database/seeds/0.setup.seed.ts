@@ -7,8 +7,6 @@ export default class Setup implements Seeder {
   public async run(dataSource: DataSource): Promise<void> {
     const prestations = await dataSource.manager.find("prestations");
 
-    console.log("\n 🏗️  Running Setup Seeder...", prestations);
-
     if (prestations.length < 1) {
       await importPrestations(dataSource);
       console.log("\n ✅ Prestations Imported");

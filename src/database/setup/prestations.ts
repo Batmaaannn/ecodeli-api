@@ -12,7 +12,6 @@ export const importPrestations = async (dataSource: DataSource) => {
     async (resolve, reject) => {
       const results: Prestation[] = [];
 
-      console.log(fs.existsSync(`src/data/${PRESTATIONS_FILE}`));
       if (fs.existsSync(`src/data/${PRESTATIONS_FILE}`)) {
         fullPath = `src/data/${PRESTATIONS_FILE}`;
       } else {
