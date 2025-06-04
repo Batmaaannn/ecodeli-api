@@ -4,6 +4,10 @@ FROM node:20-slim
 # Create app directory
 WORKDIR /usr/src/app
 
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends procps \
+ && rm -rf /var/lib/apt/lists/*
+
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
 COPY package*.json ./
 
