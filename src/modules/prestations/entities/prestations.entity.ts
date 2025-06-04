@@ -1,7 +1,9 @@
+import { RegistrationRequest } from "src/modules/registration-requests/entities/registration-requests.entity";
 import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
@@ -16,6 +18,13 @@ export class Prestation {
 
   @Column()
   category: string;
+
+  @ManyToOne(
+    () => RegistrationRequest,
+    (registrationRequest) => registrationRequest.prestations,
+    { nullable: true }
+  )
+  registrationRequest?: RegistrationRequest;
 
   @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
   created_at: Date;

@@ -18,7 +18,7 @@ export class Review {
   id: number;
 
   @Column()
-  rating: string;
+  rating: number;
 
   @Column()
   comment: string;
@@ -26,17 +26,20 @@ export class Review {
   @Column()
   date: Date;
 
+  @JoinColumn({ name: "customer_id" })
   @ManyToOne(() => Customer, (customer) => customer.reviews, {
     onDelete: "CASCADE",
   })
-  @JoinColumn({ name: "customer_id" })
   customer: Customer;
+  customer_id: number;
 
+  @JoinColumn({ name: "service_agent_id" })
   @ManyToOne(() => ServiceAgent, (agent) => agent.reviews, {
     onDelete: "CASCADE",
   })
-  @JoinColumn({ name: "service_agent_id" })
   serviceAgent: ServiceAgent;
+  @Column()
+  service_agent_id: number;
 
   @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
   created_at: Date;

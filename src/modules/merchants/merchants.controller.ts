@@ -9,7 +9,7 @@ import { ApiTags } from "@nestjs/swagger";
 import { MerchantsService } from "./merchants.service";
 import { UsersService } from "../users/users.service";
 import { Public } from "../auth/decorator/public.decorator";
-import { isBlacklisted } from "src/utils/email-blacklisted";
+import { isBlacklisted } from "src/utils/emails/email-blacklisted";
 import { CreateUserMerchantDto } from "./dto/create-user-merchant.dto";
 
 @ApiTags("merchants")

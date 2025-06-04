@@ -21,4 +21,8 @@ export default {
     region: process.env.S3_REGION || "eu-west-3",
     fileUrlExpiration: Number(process.env.SIGNED_URL_EXPIRES_SECONDS) || 900, // 15minutes
   },
+  email: {
+    key_api: process.env.MAILJET_API_KEY,
+    key_pass: process.env.MAILJET_SECRET_KEY,
+  },
 };

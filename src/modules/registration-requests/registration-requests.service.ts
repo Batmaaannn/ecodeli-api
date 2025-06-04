@@ -7,6 +7,7 @@ import { CreateServiceAgentRequestDto } from "./dto/create-registration-service-
 import { v4 as uuidv4 } from "uuid";
 import { AgentType } from "src/types/user";
 import { CreateDeliveryAgentRequestDto } from "./dto/create-registration-delivery-agent.dto";
+import { sendRegistrationRequest } from "src/utils/emails";
 
 @Injectable()
 export class RegistrationRequestsService {
@@ -19,7 +20,7 @@ export class RegistrationRequestsService {
   async createServiceAgentRequest(
     createServiceAgentRequestDto: CreateServiceAgentRequestDto
   ) {
-    const { siret, first_name, last_name, email, phone_number } =
+    const { first_name, last_name, email, phone_number } =
       createServiceAgentRequestDto;
 
     const token_request = uuidv4();
@@ -31,13 +32,13 @@ export class RegistrationRequestsService {
       agent_type: AgentType.SERVICE_AGENT,
     });
 
-    // await sendValidationRequestPharmacist({
-    //   tokenPharmacist: token_pharmacist,
-    //   fullName: `${first_name} ${last_name}`,
-    //   siret,
-    //   email,
-    //   phone_number,
-    // });
+    await sendRegistrationRequest({
+      tokenRequest: token_request,
+      fullName: `${first_name} ${last_name}`,
+      agentType: AgentType.SERVICE_AGENT,
+      email,
+      phone: phone_number,
+    });
 
     return;
   }
@@ -45,7 +46,7 @@ export class RegistrationRequestsService {
   async createDeliveryAgentRequest(
     createDeliveryAgentRequestDto: CreateDeliveryAgentRequestDto
   ) {
-    const { siret, first_name, last_name, email, phone_number } =
+    const { first_name, last_name, email, phone_number } =
       createDeliveryAgentRequestDto;
 
     const token_request = uuidv4();
@@ -57,13 +58,13 @@ export class RegistrationRequestsService {
       agent_type: AgentType.DELIVERY_AGENT,
     });
 
-    // await sendValidationRequestPharmacist({
-    //   tokenPharmacist: token_pharmacist,
-    //   fullName: `${first_name} ${last_name}`,
-    //   siret,
-    //   email,
-    //   phone_number,
-    // });
+    await sendRegistrationRequest({
+      tokenRequest: token_request,
+      fullName: `${first_name} ${last_name}`,
+      agentType: AgentType.DELIVERY_AGENT,
+      email,
+      phone: phone_number,
+    });
 
     return;
   }

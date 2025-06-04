@@ -7,7 +7,7 @@ import {
 } from "@nestjs/common";
 import { Public } from "../auth/decorator/public.decorator";
 import { CreateServiceAgentRequestDto } from "./dto/create-registration-service-agent.dto";
-import { isBlacklisted } from "src/utils/email-blacklisted";
+import { isBlacklisted } from "src/utils/emails/email-blacklisted";
 import { UsersService } from "../users/users.service";
 import { RegistrationRequestsService } from "./registration-requests.service";
 import { ApiTags } from "@nestjs/swagger";
