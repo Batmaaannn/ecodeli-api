@@ -53,8 +53,8 @@ export const importPrestations = async (dataSource: DataSource) => {
     .values(prestationsArray)
     .execute();
 
-  if (!fs.existsSync(`./data/${PRESTATIONS_FILE}`))
-    fs.unlink(fullPath, () => {
-      console.log(`${PRESTATIONS_FILE} - File removed with success`);
-    });
+  // if (!fs.existsSync(`./data/${PRESTATIONS_FILE}`))
+  //   fs.unlink(fullPath, () => {
+  //     console.log(`${PRESTATIONS_FILE} - File removed with success`);
+  //   });
 };
