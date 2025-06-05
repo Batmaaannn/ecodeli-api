@@ -1,4 +1,4 @@
-import { UserType } from "./User";
+import { UserType } from "./user";
 
 export interface PayloadAuth {
   sub: string;
