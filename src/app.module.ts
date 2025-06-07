@@ -12,6 +12,7 @@ import { ServiceAgentsModule } from "./modules/service-agents/service-agents.mod
 import { MerchantsModule } from "./modules/merchants/merchants.module";
 import { PrestationsModule } from "./modules/prestations/prestations.module";
 import { ReviewsModule } from "./modules/reviews/reviews.module";
+import { AppointmentModule } from "./modules/appointment/appointment.module";
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { ReviewsModule } from "./modules/reviews/reviews.module";
     MerchantsModule,
     ReviewsModule,
     PrestationsModule,
+    AppointmentModule,
   ],
   controllers: [AppController],
   providers: [AppService],
