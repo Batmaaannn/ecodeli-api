@@ -4,23 +4,17 @@ import { AppService } from "./app.service";
 import { UsersModule } from "./modules/users/users.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { ConfigModule, ConfigService } from "@nestjs/config";
-import { postgresDataSourceConfig } from "./config/postgres.database.config";
 import config from "./config";
 import { RegistrationRequestsModule } from "./modules/registration-requests/registration-requests.module";
 import { CustomersModule } from "./modules/customers/customers.module";
 import { DeliveryAgentsModule } from "./modules/delivery-agents/delivery-agents.module";
 import { ServiceAgentsModule } from "./modules/service-agents/service-agents.module";
 import { MerchantsModule } from "./modules/merchants/merchants.module";
+import { PrestationsModule } from "./modules/prestations/prestations.module";
+import { ReviewsModule } from "./modules/reviews/reviews.module";
 
 @Module({
   imports: [
-    // TypeOrmModule.forRootAsync({
-    //   imports: [ConfigModule],
-    //   useFactory: (configService: ConfigService) =>
-    //     postgresDataSourceConfig(configService),
-    //   inject: [ConfigService],
-    // }),
     TypeOrmModule.forRoot({
       type: "postgres",
       host: config.postgres_database.host,
@@ -38,6 +32,8 @@ import { MerchantsModule } from "./modules/merchants/merchants.module";
     DeliveryAgentsModule,
     ServiceAgentsModule,
     MerchantsModule,
+    ReviewsModule,
+    PrestationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

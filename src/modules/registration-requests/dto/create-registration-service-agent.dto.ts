@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsEmail, Length } from "class-validator";
+import { Prestation } from "src/modules/prestations/entities/prestations.entity";
 
 export class CreateServiceAgentRequestDto {
   @ApiProperty()
@@ -38,5 +39,5 @@ export class CreateServiceAgentRequestDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  prestations: string[];
+  prestations: Prestation[];
 }

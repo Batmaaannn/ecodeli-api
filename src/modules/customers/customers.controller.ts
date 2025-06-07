@@ -7,7 +7,7 @@ import {
 } from "@nestjs/common";
 import { Public } from "../auth/decorator/public.decorator";
 import { UsersService } from "../users/users.service";
-import { isBlacklisted } from "src/utils/email-blacklisted";
+import { isBlacklisted } from "src/utils/emails/email-blacklisted";
 import { CreateUserCustomerDto } from "./dto/create-user-customer.dto";
 import { CustomersService } from "./customers.service";
 import { ApiTags } from "@nestjs/swagger";
@@ -21,7 +21,7 @@ export class CustomersController {
   ) {}
 
   @Public()
-  @Post('create-customer')
+  @Post("create-customer")
   async createCustomer(@Body() createUserDto: CreateUserCustomerDto) {
     const { email } = createUserDto;
 

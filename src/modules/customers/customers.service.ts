@@ -53,4 +53,8 @@ export class CustomersService {
 
     return this.customersRepository.findOne({ where: { id } });
   }
+
+  async findOne(id: number): Promise<Customer> {
+    return this.customersRepository.findOne({ where: { id } });
+  }
 }

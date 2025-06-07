@@ -14,7 +14,7 @@ export class UsersService {
     private usersRepository: Repository<User>
   ) {}
 
-  async getMyUser(id: number | string) {
+  async getMyUser(id: number | string): Promise<any> {
     return this.findOneByIdWithAllRelations(+id);
   }
 
@@ -34,6 +34,7 @@ export class UsersService {
   async findOneByIdWithAllRelations(id: number) {
     return this.usersRepository.findOne({
       where: { id },
+      relations: ["customer", "merchant", "delivery_agent", "service_agent"],
     });
   }
 

@@ -1,9 +1,11 @@
+import { Prestation } from "src/modules/prestations/entities/prestations.entity";
 import { AgentType } from "src/types/user";
 import { VehiculeType } from "src/types/vehicule";
 import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
@@ -47,8 +49,8 @@ export class RegistrationRequest {
   })
   agent_type: AgentType;
 
-  @Column("text", { array: true, nullable: true })
-  prestations?: string[];
+  @OneToMany(() => Prestation, (prestation) => prestation.registrationRequest, { nullable: true })
+  prestations?: Prestation[];
 
   @Column({ nullable: true, unique: true })
   driving_license?: string;
