@@ -10,7 +10,7 @@ const options: DataSourceOptions & SeederOptions = {
   database: "ecodeli",
   entities: [__dirname + "/**/*.entity{.ts,.js}"],
   synchronize: true, // do not set it true in production application
-  seeds: [__dirname + "/**/*.seed{.ts,.js}"],
+  seeds: [__dirname + "/**/*.seed.ts"],
   factories: [__dirname + "/**/*.factory{.ts,.js}"],
   seedTracking: false,
 };

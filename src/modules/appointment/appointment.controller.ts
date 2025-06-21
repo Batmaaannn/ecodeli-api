@@ -3,12 +3,13 @@ import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { UserType } from "src/types/user";
 import { Roles } from "../auth/decorator/roles.decorator";
 import { CreateAppointmentDto } from "./dto/create-appointment.dto";
+import { UsersService } from "../users/users.service";
 
 @ApiBearerAuth()
 @ApiTags("appointments")
 @Controller("appointment")
 export class AppointmentController {
-  constructor() {} // private readonly usersService: UsersService // private readonly patientsService: PatientsService, // private readonly appointmentsService: AppointmentsService,
+  constructor(private readonly usersService: UsersService) {} // private readonly patientsService: PatientsService, // private readonly appointmentsService: AppointmentsService,
 
   @Roles(UserType.CUSTOMER)
   @Post()
@@ -24,10 +25,8 @@ export class AppointmentController {
     //     "Slot limits doesn't not match correct pattern HH:mm",
     //     HttpStatus.BAD_REQUEST
     //   );
-    // const user = await this.usersService.getUser(userId);
+    const user = await this.usersService.getUser(userId);
 
-    // const pui = await this.puisService.getPuiById(puiId);
-    // if (!pui) throw new HttpException("Pui not found", HttpStatus.BAD_REQUEST);
     // const patient = await this.patientsService.findOneById(patientId);
     // if (!patient)
     //   throw new HttpException("Patient not found", HttpStatus.BAD_REQUEST);
