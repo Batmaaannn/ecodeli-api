@@ -9,7 +9,6 @@ export class UsersController {
   @ApiBearerAuth()
   @Get("me")
   async getUser(@Request() req: any) {
-    console.log("req.user", req.user);
     const { userId } = req.user;
 
     return this.usersService.getUser(userId);
