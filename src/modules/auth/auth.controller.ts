@@ -26,6 +26,8 @@ export class AuthController {
   async login(@Request() req, @Body() loginUserDto: LoginUserDto) {
     const { id } = req.user;
 
+    console.log("req.user", req.user);
+
     const user = await this.usersService.getMyUser(id);
 
     if (!user)

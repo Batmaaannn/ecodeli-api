@@ -13,6 +13,9 @@ import { MerchantsModule } from "./modules/merchants/merchants.module";
 import { PrestationsModule } from "./modules/prestations/prestations.module";
 import { ReviewsModule } from "./modules/reviews/reviews.module";
 import { AppointmentModule } from "./modules/appointment/appointment.module";
+import { APP_GUARD } from "@nestjs/core";
+import { RolesGuard } from "./modules/auth/guards/roles.guard";
+import { JwtAuthGuard } from "./modules/auth/guards/jwt-auth.guard";
 
 @Module({
   imports: [
@@ -38,6 +41,16 @@ import { AppointmentModule } from "./modules/appointment/appointment.module";
     AppointmentModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+  ],
 })
 export class AppModule {}

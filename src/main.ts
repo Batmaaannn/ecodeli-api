@@ -5,15 +5,38 @@ import config from "src/config";
 import { Environments } from "./types/environments";
 import { ValidationPipe } from "@nestjs/common";
 import * as cookieParser from "cookie-parser";
+import { RouteLoggerMiddleware } from "./libs/middlewares/route-logger";
+import passport from "passport";
+import * as session from "express-session";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.enableCors();
+  app.enableCors({
+    origin: "http://localhost:5173", // ton front
+    credentials: true,
+  });
+
+  app.use(
+    session({
+      secret: process.env.JWT_SECRET,
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        maxAge: 24 * 60 * 60 * 1000,
+      },
+    })
+  );
 
   app.useGlobalPipes(new ValidationPipe());
 
+  // app.use(passport.initialize());
+
+  // app.use(passport.session());
+
   app.use(cookieParser());
+
+  app.use(RouteLoggerMiddleware);
 
   if (config.environment === Environments.DEV) {
     const config = new DocumentBuilder()

@@ -1,7 +1,17 @@
-import { Controller } from "@nestjs/common";
+import { Controller, Get, Request } from "@nestjs/common";
 import { UsersService } from "./users.service";
+import { ApiBearerAuth } from "@nestjs/swagger";
 
 @Controller("users")
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  @ApiBearerAuth()
+  @Get("me")
+  async getUser(@Request() req: any) {
+    console.log("req.user", req.user);
+    const { userId } = req.user;
+
+    return this.usersService.getUser(userId);
+  }
 }

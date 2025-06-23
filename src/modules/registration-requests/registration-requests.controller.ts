@@ -57,7 +57,7 @@ export class RegistrationRequestsController {
   async createDeliveryAgent(
     @Body() createDeliveryAgentRequestDto: CreateDeliveryAgentRequestDto
   ) {
-    const { siret, email, driving_license } = createDeliveryAgentRequestDto;
+    const { siret, email, drivingLicense } = createDeliveryAgentRequestDto;
 
     await isBlacklisted(email);
 
@@ -80,7 +80,7 @@ export class RegistrationRequestsController {
 
     const drivingLicenceExists =
       await this.registrationRequestsService.findOneByDrivingLicence(
-        driving_license
+        drivingLicense
       );
     if (drivingLicenceExists) {
       throw new HttpException("Driving licence exists", HttpStatus.CONFLICT);

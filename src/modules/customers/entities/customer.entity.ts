@@ -24,8 +24,8 @@ export class Customer {
   @Column()
   first_name: string;
 
-  @Column({ nullable: true })
-  phone_number?: string;
+  @Column()
+  phone_number: string;
 
   @Column({ nullable: true })
   address_1?: string;

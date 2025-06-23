@@ -20,24 +20,24 @@ export class RegistrationRequestsService {
   async createServiceAgentRequest(
     createServiceAgentRequestDto: CreateServiceAgentRequestDto
   ) {
-    const { first_name, last_name, email, phone_number } =
+    const { firstName, lastName, email, phoneNumber } =
       createServiceAgentRequestDto;
 
     const token_request = uuidv4();
 
-    await this.insertOneServiceAgentRequest({
-      ...createServiceAgentRequestDto,
-      is_processed: false,
-      token_request,
-      agent_type: AgentType.SERVICE_AGENT,
-    });
+    // await this.insertOneServiceAgentRequest({
+    //   ...createServiceAgentRequestDto,
+    //   is_processed: false,
+    //   token_request,
+    //   agent_type: AgentType.SERVICE_AGENT,
+    // });
 
     await sendRegistrationRequest({
       tokenRequest: token_request,
-      fullName: `${first_name} ${last_name}`,
+      fullName: `${firstName} ${lastName}`,
       agentType: AgentType.SERVICE_AGENT,
       email,
-      phone: phone_number,
+      phone: phoneNumber,
     });
 
     return;
@@ -46,24 +46,26 @@ export class RegistrationRequestsService {
   async createDeliveryAgentRequest(
     createDeliveryAgentRequestDto: CreateDeliveryAgentRequestDto
   ) {
-    const { first_name, last_name, email, phone_number } =
+    const { firstName, lastName, email, phoneNumber } =
       createDeliveryAgentRequestDto;
 
     const token_request = uuidv4();
 
-    await this.insertOneDeliveryAgentRequest({
-      ...createDeliveryAgentRequestDto,
-      is_processed: false,
-      token_request,
-      agent_type: AgentType.DELIVERY_AGENT,
-    });
+    // await this.insertOneDeliveryAgentRequest({
+    //   first_name: firstName,
+    //   last_name: lastName,
+
+    //   is_processed: false,
+    //   token_request,
+    //   agent_type: AgentType.DELIVERY_AGENT,
+    // });
 
     await sendRegistrationRequest({
       tokenRequest: token_request,
-      fullName: `${first_name} ${last_name}`,
+      fullName: `${firstName} ${lastName}`,
       agentType: AgentType.DELIVERY_AGENT,
       email,
-      phone: phone_number,
+      phone: phoneNumber,
     });
 
     return;

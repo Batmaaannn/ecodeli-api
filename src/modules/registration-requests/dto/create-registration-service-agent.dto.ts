@@ -10,15 +10,15 @@ export class CreateServiceAgentRequestDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  company_name: string;
+  companyName: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  company_address: string;
+  companyAddress: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  company_city: string;
+  companyCity: string;
 
   @ApiProperty()
   @IsEmail()
@@ -27,17 +27,17 @@ export class CreateServiceAgentRequestDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  first_name: string;
+  firstName: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  last_name: string;
+  lastName: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  phone_number: string;
+  phoneNumber: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  prestations: Prestation[];
+  prestations: any[];
 }

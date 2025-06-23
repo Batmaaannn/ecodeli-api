@@ -9,11 +9,15 @@ export class CreateUserCustomerDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  first_name: string;
+  firstName: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  last_name: string;
+  lastName: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  phoneNumber: string;
 
   @ApiProperty()
   @IsNotEmpty()
