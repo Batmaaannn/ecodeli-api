@@ -9,6 +9,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
+import { PrestationRegistrationRequest } from "./prestation-registration-request.entity";
 
 @Entity({ name: "registration-requests" })
 export class RegistrationRequest {
@@ -49,8 +50,12 @@ export class RegistrationRequest {
   })
   agent_type: AgentType;
 
-  @OneToMany(() => Prestation, (prestation) => prestation.registrationRequest, { nullable: true })
-  prestations?: Prestation[];
+  @OneToMany(
+    () => PrestationRegistrationRequest,
+    (link) => link.registrationRequest,
+    { cascade: true }
+  )
+  prestationLinks?: PrestationRegistrationRequest[];
 
   @Column({ nullable: true, unique: true })
   driving_license?: string;

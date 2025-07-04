@@ -4,7 +4,7 @@ import { AgentType } from "src/types/user";
 
 const mailjet = new Client({
   apiKey: config.email.key_api,
-  apiSecret: config.email.key_pass,
+  apiSecret: config.email.key_pass || "ICI le mdp",
 });
 
 enum EmailTemplates {

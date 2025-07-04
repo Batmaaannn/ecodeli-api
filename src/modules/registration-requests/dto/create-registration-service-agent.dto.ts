@@ -1,5 +1,12 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsEmail, Length } from "class-validator";
+import { Type } from "class-transformer";
+import {
+  IsNotEmpty,
+  IsEmail,
+  Length,
+  IsArray,
+  ValidateNested,
+} from "class-validator";
 import { Prestation } from "src/modules/prestations/entities/prestations.entity";
 
 export class CreateServiceAgentRequestDto {
@@ -37,7 +44,18 @@ export class CreateServiceAgentRequestDto {
   @IsNotEmpty()
   phoneNumber: string;
 
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PrestationsRequestDto)
+  prestations: PrestationsRequestDto[];
+}
+
+export class PrestationsRequestDto {
   @ApiProperty()
   @IsNotEmpty()
-  prestations: any[];
+  prestationId: number;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  price: number;
 }

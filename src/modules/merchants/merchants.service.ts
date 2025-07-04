@@ -16,25 +16,25 @@ export class MerchantsService {
 
   async createMerchant(createUserDto: CreateUserMerchantDto) {
     const {
-      first_name,
-      last_name,
+      firstName,
+      lastName,
       email,
       password,
-      phone_number,
+      phoneNumber,
       siret,
-      company_address,
-      company_name,
-      company_city,
+      companyAddress,
+      companyName,
+      companyCity,
     } = createUserDto;
 
     const createdMerchant = await this.insertOne({
-      first_name,
-      last_name,
-      phone_number,
+      first_name: firstName,
+      last_name: lastName,
+      phone_number: phoneNumber,
       siret,
-      company_address,
-      company_name,
-      company_city,
+      company_address: companyAddress,
+      company_name: companyName,
+      company_city: companyCity,
     });
 
     const insertedUser = await this.usersService.insertOneMerchant(

@@ -8,37 +8,64 @@ import { v4 as uuidv4 } from "uuid";
 import { AgentType } from "src/types/user";
 import { CreateDeliveryAgentRequestDto } from "./dto/create-registration-delivery-agent.dto";
 import { sendRegistrationRequest } from "src/utils/emails";
+import { PrestationRegistrationRequest } from "./entities/prestation-registration-request.entity";
 
 @Injectable()
 export class RegistrationRequestsService {
   constructor(
     @InjectRepository(RegistrationRequest)
     private registrationRequestRepository: Repository<RegistrationRequest>,
+    @InjectRepository(PrestationRegistrationRequest)
+    private prestationRegistrationRequest: Repository<PrestationRegistrationRequest>,
     private usersService: UsersService
   ) {}
 
   async createServiceAgentRequest(
     createServiceAgentRequestDto: CreateServiceAgentRequestDto
   ) {
-    const { firstName, lastName, email, phoneNumber } =
-      createServiceAgentRequestDto;
+    const {
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      companyAddress,
+      companyCity,
+      companyName,
+      prestations,
+    } = createServiceAgentRequestDto;
 
     const token_request = uuidv4();
 
-    // await this.insertOneServiceAgentRequest({
-    //   ...createServiceAgentRequestDto,
-    //   is_processed: false,
-    //   token_request,
-    //   agent_type: AgentType.SERVICE_AGENT,
-    // });
-
-    await sendRegistrationRequest({
-      tokenRequest: token_request,
-      fullName: `${firstName} ${lastName}`,
-      agentType: AgentType.SERVICE_AGENT,
-      email,
-      phone: phoneNumber,
+    const registrationRequest = await this.insertOneServiceAgentRequest({
+      ...createServiceAgentRequestDto,
+      first_name: firstName,
+      last_name: lastName,
+      phone_number: phoneNumber,
+      company_name: companyName,
+      company_address: companyAddress,
+      company_city: companyCity,
+      is_processed: false,
+      token_request,
+      agent_type: AgentType.SERVICE_AGENT,
     });
+
+    const linksToInsert = prestations.map(({ prestationId, price }) =>
+      this.prestationRegistrationRequest.create({
+        registrationRequest,
+        prestation: { id: prestationId },
+        price,
+      })
+    );
+
+    await this.prestationRegistrationRequest.save(linksToInsert);
+
+    // await sendRegistrationRequest({
+    //   tokenRequest: token_request,
+    //   fullName: `${firstName} ${lastName}`,
+    //   agentType: AgentType.SERVICE_AGENT,
+    //   email,
+    //   phone: phoneNumber,
+    // });
 
     return;
   }
@@ -105,7 +132,6 @@ export class RegistrationRequestsService {
       | "company_address"
       | "company_city"
       | "agent_type"
-      | "prestations"
       | "is_processed"
       | "token_request"
     >
@@ -145,7 +171,6 @@ export class RegistrationRequestsService {
       | "company_address"
       | "company_city"
       | "agent_type"
-      | "prestations"
       | "is_processed"
       | "token_request"
     >
