@@ -9,6 +9,7 @@ import { AgentType } from "src/types/user";
 import { CreateDeliveryAgentRequestDto } from "./dto/create-registration-delivery-agent.dto";
 import { sendRegistrationRequest } from "src/utils/emails";
 import { PrestationRegistrationRequest } from "./entities/prestation-registration-request.entity";
+import { FilesService } from "../files/files.service";
 
 @Injectable()
 export class RegistrationRequestsService {
@@ -17,7 +18,8 @@ export class RegistrationRequestsService {
     private registrationRequestRepository: Repository<RegistrationRequest>,
     @InjectRepository(PrestationRegistrationRequest)
     private prestationRegistrationRequest: Repository<PrestationRegistrationRequest>,
-    private usersService: UsersService
+    private usersService: UsersService,
+    private filesService: FilesService
   ) {}
 
   async createServiceAgentRequest(
@@ -34,7 +36,7 @@ export class RegistrationRequestsService {
       prestations,
     } = createServiceAgentRequestDto;
 
-    const token_request = uuidv4();
+    const tokenRequest = uuidv4();
 
     const registrationRequest = await this.insertOneServiceAgentRequest({
       ...createServiceAgentRequestDto,
@@ -44,8 +46,7 @@ export class RegistrationRequestsService {
       company_name: companyName,
       company_address: companyAddress,
       company_city: companyCity,
-      is_processed: false,
-      token_request,
+      token_request: tokenRequest,
       agent_type: AgentType.SERVICE_AGENT,
     });
 
@@ -67,7 +68,7 @@ export class RegistrationRequestsService {
     //   phone: phoneNumber,
     // });
 
-    return;
+    return { tokenRequest };
   }
 
   async createDeliveryAgentRequest(
@@ -132,7 +133,6 @@ export class RegistrationRequestsService {
       | "company_address"
       | "company_city"
       | "agent_type"
-      | "is_processed"
       | "token_request"
     >
   ): Promise<RegistrationRequest> {
@@ -150,7 +150,6 @@ export class RegistrationRequestsService {
       | "driving_license"
       | "agent_type"
       | "vehicle_type"
-      | "is_processed"
       | "token_request"
     >
   ): Promise<RegistrationRequest> {
@@ -171,7 +170,6 @@ export class RegistrationRequestsService {
       | "company_address"
       | "company_city"
       | "agent_type"
-      | "is_processed"
       | "token_request"
     >
   ) {

@@ -10,6 +10,7 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 import { PrestationRegistrationRequest } from "./prestation-registration-request.entity";
+import { Statut } from "src/types/statut";
 
 @Entity({ name: "registration-requests" })
 export class RegistrationRequest {
@@ -68,8 +69,12 @@ export class RegistrationRequest {
   })
   vehicle_type?: VehiculeType;
 
-  @Column({ default: false })
-  is_processed: boolean;
+  @Column({
+    type: "enum",
+    enum: Statut,
+    default: Statut.PENDING,
+  })
+  statut: Statut;
 
   @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
   created_at: Date;

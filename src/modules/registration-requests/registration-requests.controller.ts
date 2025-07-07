@@ -4,6 +4,8 @@ import {
   HttpException,
   HttpStatus,
   Post,
+  UploadedFiles,
+  UseInterceptors,
 } from "@nestjs/common";
 import { Public } from "../auth/decorator/public.decorator";
 import { CreateServiceAgentRequestDto } from "./dto/create-registration-service-agent.dto";
@@ -46,7 +48,6 @@ export class RegistrationRequestsController {
     if (emailExists) {
       throw new HttpException("Email exists", HttpStatus.CONFLICT);
     }
-
     return this.registrationRequestsService.createServiceAgentRequest(
       createServiceAgentRequestDto
     );

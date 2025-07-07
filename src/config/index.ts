@@ -15,6 +15,7 @@ export default {
     synchronize: process.env.DB_TYPEORM_SYNCHRONIZE === "true" ? true : false,
   },
   storage: {
+    bucket: process.env.S3_BUCKET || "ecodeli-dev",
     accessKeyId: process.env.S3_ACCESS_KEY_ID || "",
     secretKey: process.env.S3_SECRET_KEY || "",
     host: process.env.S3_HOST || "",

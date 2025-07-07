@@ -7,8 +7,6 @@ import {
   IsArray,
   ValidateNested,
 } from "class-validator";
-import { Prestation } from "src/modules/prestations/entities/prestations.entity";
-
 export class CreateServiceAgentRequestDto {
   @ApiProperty()
   @IsNotEmpty()
