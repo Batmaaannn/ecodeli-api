@@ -20,7 +20,7 @@ export default {
     secretKey: process.env.S3_SECRET_KEY || "",
     host: process.env.S3_HOST || "",
     region: process.env.S3_REGION || "eu-west-3",
-    fileUrlExpiration: Number(process.env.SIGNED_URL_EXPIRES_SECONDS) || 900, // 15minutes
+    fileUrlExpiration: Number(process.env.SIGNED_URL_EXPIRES_SECONDS) || 900,
   },
   email: {
     key_api: process.env.MAILJET_API_KEY,

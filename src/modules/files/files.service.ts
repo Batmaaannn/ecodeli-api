@@ -23,7 +23,7 @@ export class FilesService {
   }) {
     const { fileName, files, info, tokenRequest, registrationRequestId } =
       registration;
-
+    console.log(registration);
     if (!files.length) {
       throw new HttpException("No files received", HttpStatus.BAD_REQUEST);
     }
@@ -35,9 +35,14 @@ export class FilesService {
       );
 
       const fileFullPath = `${tokenRequest}/${fileNameSlugified}`;
+      console.log("fileFullPath", fileFullPath);
 
       try {
-        await this.processFile(fileFullPath, file, tokenRequest.toString());
+        const presignedURL: string = await this.processFile(
+          fileFullPath,
+          file,
+          tokenRequest.toString()
+        );
 
         const registration = {
           ...(info && { info }),
@@ -47,7 +52,12 @@ export class FilesService {
           target_id: registrationRequestId,
         };
 
-        await this.insertOne(registration);
+        const createdFile = await this.insertOne(registration);
+
+        return {
+          ...createdFile,
+          url: presignedURL,
+        };
       } catch (err) {
         console.log(err);
         throw new HttpException(

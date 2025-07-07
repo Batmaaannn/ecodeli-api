@@ -46,6 +46,12 @@ export class CreateServiceAgentRequestDto {
   @ValidateNested({ each: true })
   @Type(() => PrestationsRequestDto)
   prestations: PrestationsRequestDto[];
+
+  @ApiProperty()
+  files: Express.Multer.File[];
+
+  @ApiProperty()
+  fileName: string;
 }
 
 export class PrestationsRequestDto {

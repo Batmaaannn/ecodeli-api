@@ -14,6 +14,9 @@ import { UsersService } from "../users/users.service";
 import { RegistrationRequestsService } from "./registration-requests.service";
 import { ApiTags } from "@nestjs/swagger";
 import { CreateDeliveryAgentRequestDto } from "./dto/create-registration-delivery-agent.dto";
+import { FilesInterceptor } from "@nestjs/platform-express";
+import { plainToInstance } from "class-transformer";
+import { validate } from "class-validator";
 
 @ApiTags("registration-requests")
 @Controller("registration-requests")
@@ -24,9 +27,11 @@ export class RegistrationRequestsController {
   ) {}
 
   @Public()
+  @UseInterceptors(FilesInterceptor("files"))
   @Post("service-agent")
   async createServiceAgent(
-    @Body() createServiceAgentRequestDto: CreateServiceAgentRequestDto
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body() createServiceAgentRequestDto: Record<string, any>
   ) {
     const { siret, email } = createServiceAgentRequestDto;
 
@@ -40,7 +45,7 @@ export class RegistrationRequestsController {
 
     const userRegistered = await this.usersService.findOneByEmail(email);
     if (userRegistered) {
-      throw new HttpException("Email exists", HttpStatus.CONFLICT);
+      throw new HttpException("User exists", HttpStatus.CONFLICT);
     }
 
     const emailExists =
@@ -48,9 +53,47 @@ export class RegistrationRequestsController {
     if (emailExists) {
       throw new HttpException("Email exists", HttpStatus.CONFLICT);
     }
-    return this.registrationRequestsService.createServiceAgentRequest(
+
+    if (files?.length > 0) {
+      files.map((file) => {
+        if (
+          !file.mimetype.match(
+            /jpg|jpeg|png|application\/octet-stream|application\/pdf/i
+          )
+        )
+          throw new HttpException(
+            "Can only process jpg, jpeg or pdf files",
+            HttpStatus.BAD_REQUEST
+          );
+      });
+    }
+
+    if (typeof createServiceAgentRequestDto.prestations === "string") {
+      try {
+        createServiceAgentRequestDto.prestations = JSON.parse(
+          createServiceAgentRequestDto.prestations
+        );
+      } catch (e) {
+        throw new HttpException(
+          "formated prestations field is not valid JSON",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+    }
+
+    const dto = plainToInstance(
+      CreateServiceAgentRequestDto,
       createServiceAgentRequestDto
     );
+    const errors = await validate(dto);
+    if (errors.length > 0) {
+      throw new HttpException(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    return this.registrationRequestsService.createServiceAgentRequest({
+      ...createServiceAgentRequestDto,
+      files,
+    });
   }
 
   @Public()

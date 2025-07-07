@@ -22,9 +22,7 @@ export class RegistrationRequestsService {
     private filesService: FilesService
   ) {}
 
-  async createServiceAgentRequest(
-    createServiceAgentRequestDto: CreateServiceAgentRequestDto
-  ) {
+  async createServiceAgentRequest(newRegistrationRequestInfo: any) {
     const {
       firstName,
       lastName,
@@ -34,12 +32,14 @@ export class RegistrationRequestsService {
       companyCity,
       companyName,
       prestations,
-    } = createServiceAgentRequestDto;
+      files,
+      fileName,
+    } = newRegistrationRequestInfo;
 
     const tokenRequest = uuidv4();
 
     const registrationRequest = await this.insertOneServiceAgentRequest({
-      ...createServiceAgentRequestDto,
+      ...newRegistrationRequestInfo,
       first_name: firstName,
       last_name: lastName,
       phone_number: phoneNumber,
@@ -60,6 +60,15 @@ export class RegistrationRequestsService {
 
     await this.prestationRegistrationRequest.save(linksToInsert);
 
+    if (files?.length > 0) {
+      await this.filesService.createRegistrationRequestFile({
+        fileName,
+        files,
+        tokenRequest,
+        registrationRequestId: registrationRequest.id,
+      });
+    }
+
     // await sendRegistrationRequest({
     //   tokenRequest: token_request,
     //   fullName: `${firstName} ${lastName}`,
@@ -68,7 +77,7 @@ export class RegistrationRequestsService {
     //   phone: phoneNumber,
     // });
 
-    return { tokenRequest };
+    return;
   }
 
   async createDeliveryAgentRequest(
