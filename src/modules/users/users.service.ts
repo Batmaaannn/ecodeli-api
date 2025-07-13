@@ -1,11 +1,11 @@
-import { forwardRef, Inject, Injectable } from "@nestjs/common";
-import { AuthService } from "../auth/auth.service";
+import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "./entities/user.entity";
 import { Repository } from "typeorm";
-import { CustomerUser, MerchantUser } from "src/types/user";
+import { CustomerUser, MerchantUser, ServiceAgentUser } from "src/types/user";
 import { Customer } from "../customers/entities/customer.entity";
 import { Merchant } from "../merchants/entities/merchants.entity";
+import { ServiceAgent } from "../service-agents/entities/service-agents.entity";
 
 @Injectable()
 export class UsersService {
@@ -59,6 +59,22 @@ export class UsersService {
       ...merchantToCreate,
       email: merchantToCreate.email.toLowerCase(),
       merchant,
+    });
+
+    return this.usersRepository.save(user);
+  }
+
+  async insertOneServiceAgent(
+    serviceAgentToCreate: Pick<
+      ServiceAgentUser,
+      "email" | "password" | "user_type"
+    >,
+    serviceAgent: ServiceAgent
+  ): Promise<User> {
+    const user = this.usersRepository.create({
+      ...serviceAgentToCreate,
+      email: serviceAgentToCreate.email.toLowerCase(),
+      service_agent: serviceAgent,
     });
 
     return this.usersRepository.save(user);

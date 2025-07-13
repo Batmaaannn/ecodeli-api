@@ -58,13 +58,9 @@ export class RegistrationRequest {
   )
   prestationLinks?: PrestationRegistrationRequest[];
 
-  @Column({ nullable: true, unique: true })
-  driving_license?: string;
-
   @Column({
     type: "enum",
     enum: VehiculeType,
-    default: VehiculeType.VAN,
     nullable: true,
   })
   vehicle_type?: VehiculeType;

@@ -1,15 +1,20 @@
-import { Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { UsersService } from "../users/users.service";
 import { RegistrationRequest } from "./entities/registration-requests.entity";
-import { CreateServiceAgentRequestDto } from "./dto/create-registration-service-agent.dto";
 import { v4 as uuidv4 } from "uuid";
 import { AgentType } from "src/types/user";
 import { CreateDeliveryAgentRequestDto } from "./dto/create-registration-delivery-agent.dto";
 import { sendRegistrationRequest } from "src/utils/emails";
 import { PrestationRegistrationRequest } from "./entities/prestation-registration-request.entity";
 import { FilesService } from "../files/files.service";
+import { FileTargetType } from "src/types/file";
+import { UpdateStatusRequestDto } from "./dto/update-status-registration.dto";
+import { Statut } from "src/types/statut";
+import { ServiceAgentsService } from "../service-agents/service-agents.service";
+import { CreateUserFromRegistrationRequestDto } from "./dto/create-user-registation-request.dto";
+import { CreateServiceAgentDto } from "../service-agents/dto/create-user-service-agent.dto";
 
 @Injectable()
 export class RegistrationRequestsService {
@@ -18,7 +23,7 @@ export class RegistrationRequestsService {
     private registrationRequestRepository: Repository<RegistrationRequest>,
     @InjectRepository(PrestationRegistrationRequest)
     private prestationRegistrationRequest: Repository<PrestationRegistrationRequest>,
-    private usersService: UsersService,
+    private serviceAgentsService: ServiceAgentsService,
     private filesService: FilesService
   ) {}
 
@@ -107,8 +112,92 @@ export class RegistrationRequestsService {
 
     return;
   }
+  m;
+  async getRegistrationRequestById(id: number): Promise<any> {
+    const registrationRequest = await this.findOneByIdWithRelations(id);
+
+    if (!registrationRequest) {
+      throw new HttpException(
+        `Registration request not found`,
+        HttpStatus.NOT_FOUND
+      );
+    }
+
+    const documents = await this.filesService.getFilesByTargetTypeAndId(
+      FileTargetType.REGISTRATION_REQUEST,
+      registrationRequest.id
+    );
+
+    return {
+      ...registrationRequest,
+      documents,
+    };
+  }
+
+  // async updateRegistrationRequestStatus(
+  //   id: number,
+  //   { status }: UpdateStatusRequestDto
+  // ): Promise<void> {
+  //   const request = await this.findOneByIdWithRelations(id);
+  //   if (!request) {
+  //     throw new HttpException(
+  //       "Registration request not found",
+  //       HttpStatus.NOT_FOUND
+  //     );
+  //   }
+
+  //   const newStatus = status ? Statut.ACCEPTED : Statut.REJECTED;
+
+  //   await this.registrationRequestRepository.update(
+  //     { id },
+  //     { statut: newStatus }
+  //   );
+
+  //   if (
+  //     newStatus === Statut.ACCEPTED &&
+  //     request.agent_type === AgentType.SERVICE_AGENT
+  //   ) {
+  //     await this.serviceAgentsService.createServiceAgent(request);
+  //   }
+  // }
+
+  async validateAgent(createUserDto: CreateUserFromRegistrationRequestDto) {
+    const { agent_type } = createUserDto;
+
+    //TODO: change prestations
+    if (agent_type === AgentType.SERVICE_AGENT) {
+      const serviceAgentDto: CreateServiceAgentDto = {
+        siret: createUserDto.siret,
+        token_request: createUserDto.token_request,
+        email: createUserDto.email,
+        company_name: createUserDto.company_name,
+        company_address: createUserDto.company_address,
+        company_city: createUserDto.company_city,
+        first_name: createUserDto.first_name,
+        last_name: createUserDto.last_name,
+        phone_number: createUserDto.phone_number,
+        prestationLinks: [],
+      };
+      return this.serviceAgentsService.createServiceAgent(serviceAgentDto);
+    }
+
+    return true;
+  }
 
   /* Db Request */
+
+  findAll(): Promise<RegistrationRequest[]> {
+    return this.registrationRequestRepository.find({
+      order: { created_at: "DESC" },
+    });
+  }
+
+  findOneByIdWithRelations(id: number): Promise<RegistrationRequest> {
+    return this.registrationRequestRepository.findOne({
+      where: { id },
+      relations: ["prestationLinks", "prestationLinks.prestation"],
+    });
+  }
 
   findOneByEmail(email: string): Promise<RegistrationRequest> {
     return this.registrationRequestRepository.findOne({
@@ -119,14 +208,6 @@ export class RegistrationRequestsService {
   findOneBySiret(siret: string): Promise<RegistrationRequest> {
     return this.registrationRequestRepository.findOne({
       where: { siret },
-    });
-  }
-
-  findOneByDrivingLicence(
-    driving_license: string
-  ): Promise<RegistrationRequest> {
-    return this.registrationRequestRepository.findOne({
-      where: { driving_license },
     });
   }
 
@@ -156,7 +237,6 @@ export class RegistrationRequestsService {
       | "last_name"
       | "email"
       | "phone_number"
-      | "driving_license"
       | "agent_type"
       | "vehicle_type"
       | "token_request"
@@ -165,7 +245,6 @@ export class RegistrationRequestsService {
     return this.registrationRequestRepository.save(deliveryAgentToCreate);
   }
 
-  // Update pharmacistRequest when validation form
   async updateServiceAgentRequest(
     token_request: string,
     pharmacistToUpdate: Pick<

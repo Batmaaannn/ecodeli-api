@@ -39,11 +39,6 @@ export class CreateDeliveryAgentRequestDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  @Length(1, 15, { message: "Driving license length must be between 1 and 15" })
-  drivingLicense: string;
-
-  @ApiProperty()
-  @IsNotEmpty()
   @IsEnum(VehiculeType)
   vehicleType: VehiculeType;
 }

@@ -1,8 +1,12 @@
 import {
   Body,
   Controller,
+  Get,
   HttpException,
   HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
   Post,
   UploadedFiles,
   UseInterceptors,
@@ -17,14 +21,32 @@ import { CreateDeliveryAgentRequestDto } from "./dto/create-registration-deliver
 import { FilesInterceptor } from "@nestjs/platform-express";
 import { plainToInstance } from "class-transformer";
 import { validate } from "class-validator";
+import { Roles } from "../auth/decorator/roles.decorator";
+import { UserType } from "src/types/user";
+import { UpdateStatusRequestDto } from "./dto/update-status-registration.dto";
+import { ServiceAgentsService } from "../service-agents/service-agents.service";
 
 @ApiTags("registration-requests")
 @Controller("registration-requests")
 export class RegistrationRequestsController {
   constructor(
     private readonly registrationRequestsService: RegistrationRequestsService,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private serviceAgentsService: ServiceAgentsService
+    // private readonly usersService: UsersService
   ) {}
+
+  @Get()
+  @Roles(UserType.ADMIN)
+  async getAllRegistrationRequests() {
+    return this.registrationRequestsService.findAll();
+  }
+
+  @Get(":id")
+  @Roles(UserType.ADMIN)
+  async getRegistrationRequestById(@Param("id", ParseIntPipe) id: number) {
+    return this.registrationRequestsService.getRegistrationRequestById(id);
+  }
 
   @Public()
   @UseInterceptors(FilesInterceptor("files"))
@@ -101,7 +123,7 @@ export class RegistrationRequestsController {
   async createDeliveryAgent(
     @Body() createDeliveryAgentRequestDto: CreateDeliveryAgentRequestDto
   ) {
-    const { siret, email, drivingLicense } = createDeliveryAgentRequestDto;
+    const { siret, email } = createDeliveryAgentRequestDto;
 
     await isBlacklisted(email);
 
@@ -122,16 +144,42 @@ export class RegistrationRequestsController {
       throw new HttpException("Email exists", HttpStatus.CONFLICT);
     }
 
-    const drivingLicenceExists =
-      await this.registrationRequestsService.findOneByDrivingLicence(
-        drivingLicense
-      );
-    if (drivingLicenceExists) {
-      throw new HttpException("Driving licence exists", HttpStatus.CONFLICT);
-    }
-
     return this.registrationRequestsService.createDeliveryAgentRequest(
       createDeliveryAgentRequestDto
     );
+  }
+
+  // @Patch(":id/status")
+  // @Roles(UserType.ADMIN)
+  // async updateRegistrationRequestStatus(
+  //   @Param("id", ParseIntPipe) id: number,
+  //   @Body() updateStatusRequestDto: UpdateStatusRequestDto
+  // ) {
+  //   console.log("updateStatusRequestDto", updateStatusRequestDto);
+  //   return this.registrationRequestsService.updateRegistrationRequestStatus(
+  //     id,
+  //     updateStatusRequestDto
+  //   );
+  // }
+
+  @Post("/validate/id")
+  async validateAgent(@Param("id", ParseIntPipe) id: number) {
+    const registrationRequest =
+      await this.registrationRequestsService.findOneByIdWithRelations(id);
+
+    const { siret, email } = registrationRequest;
+    await isBlacklisted(email);
+
+    const siretExists = await this.serviceAgentsService.findOneBySiret(siret);
+    if (siretExists) {
+      throw new HttpException("Siret exists", HttpStatus.CONFLICT);
+    }
+
+    const existingEmail = await this.usersService.findOneByEmail(email);
+    if (existingEmail) {
+      throw new HttpException("Existing Email", HttpStatus.CONFLICT);
+    }
+
+    return this.registrationRequestsService.validateAgent(registrationRequest);
   }
 }
