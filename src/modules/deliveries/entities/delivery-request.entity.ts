@@ -3,16 +3,16 @@ import {
     CreateDateColumn,
     Entity,
     JoinColumn,
-    ManyToOne, OneToMany,
+    ManyToOne,
+    OneToMany,
     PrimaryGeneratedColumn,
 } from "typeorm";
-import {DeliveryAgent} from "../../delivery-agents/entities/delivery-agents.entity";
+import { DeliveryAgent } from "../../delivery-agents/entities/delivery-agents.entity";
 import { Customer } from "src/modules/customers/entities/customer.entity";
-import { DeliveryObject} from "./delivery-request-object.entity";
+import { DeliveryObject } from "./delivery-request-object.entity";
 
 @Entity({ name: "delivery_requests" })
 export class DeliveryRequest {
-
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -30,25 +30,24 @@ export class DeliveryRequest {
     @Column()
     arrival_city: string;
 
-    @Column("decimal", {precision: 5, scale: 2})
+    @Column("decimal", { precision: 5, scale: 2 })
     price: number;
 
-    @Column({type: "timestamptz"})
+    @Column({ type: "timestamptz" })
     start_date: Date;
 
-    @Column({type: "timestamptz"})
+    @Column({ type: "timestamptz" })
     end_date: Date;
 
-    @Column({default:false})
+    @Column({ default: false })
     assurance: boolean;
 
-    @Column({default: false})
+    @Column({ default: false })
     urgent: boolean;
 
-    @OneToMany(() => DeliveryObject, (object) => object.deliveryRequest, { cascade: true,})
+    @OneToMany(() => DeliveryObject, (object) => object.deliveryRequest, { cascade: true })
     objects: DeliveryObject[];
 
     @CreateDateColumn({ type: "timestamptz" })
     created_at: Date;
-
 }

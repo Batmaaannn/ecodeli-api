@@ -1,14 +1,23 @@
 import { ApiProperty } from "@nestjs/swagger";
-import {IsArray, IsDateString, IsNumber, IsOptional, IsString} from "class-validator";
+import {
+    IsArray,
+    IsBoolean,
+    IsDateString,
+    IsNumber,
+    IsOptional,
+    IsString,
+    ValidateNested,
+} from "class-validator";
+import { Type } from "class-transformer";
 
 class CreateDelivryObjectDto {
-    @ApiProperty({required: false})
+    @ApiProperty({ required: false })
     @IsOptional()
     @IsString()
     photo?: string;
 
     @ApiProperty()
-    @IsNumber
+    @IsNumber()
     quantity: number;
 
     @ApiProperty()
@@ -19,7 +28,7 @@ class CreateDelivryObjectDto {
     @IsNumber()
     poids: number;
 
-    @ApiProperty({ required: false})
+    @ApiProperty({ required: false })
     @IsOptional()
     @IsString()
     additional_info?: string;
@@ -43,7 +52,7 @@ export class CreateDeliveryRequestDto {
     start_date: Date;
 
     @ApiProperty()
-    @IsDateString
+    @IsDateString()
     end_date: Date;
 
     @ApiProperty()
@@ -54,9 +63,9 @@ export class CreateDeliveryRequestDto {
     @IsBoolean()
     urgent: boolean;
 
-    @ApiProperty({type: [CreateDelivryObjectDto]})
-    @IsArray
-    @ValidateNested({each: true})
+    @ApiProperty({ type: [CreateDelivryObjectDto] })
+    @IsArray()
+    @ValidateNested({ each: true })
     @Type(() => CreateDelivryObjectDto)
     objects: CreateDelivryObjectDto[];
 }
