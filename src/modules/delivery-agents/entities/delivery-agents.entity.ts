@@ -45,6 +45,9 @@ export class DeliveryAgent {
   @Column({ unique: true })
   driving_license: string;
 
+  @OneToMany(() => Trip, (trip) => trip.delivery_agent)
+  trips: Trip[];
+
   @Column({ type: "enum", enum: VehiculeType, default: VehiculeType.VAN })
   vehicle_type: VehiculeType;
 

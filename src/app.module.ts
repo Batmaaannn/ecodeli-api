@@ -17,6 +17,7 @@ import { APP_GUARD } from "@nestjs/core";
 import { RolesGuard } from "./modules/auth/guards/roles.guard";
 import { JwtAuthGuard } from "./modules/auth/guards/jwt-auth.guard";
 import {DeliveryRequestsModule} from "./modules/deliveries/delivery-requests.module";
+import {TripModule} from "./modules/trip/trip.modules";
 
 @Module({
   imports: [
@@ -40,7 +41,8 @@ import {DeliveryRequestsModule} from "./modules/deliveries/delivery-requests.mod
     ReviewsModule,
     PrestationsModule,
     AppointmentModule,
-    DeliveryRequestsModule
+    DeliveryRequestsModule,
+    TripModule
   ],
   controllers: [AppController],
   providers: [
