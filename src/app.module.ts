@@ -16,6 +16,7 @@ import { AppointmentModule } from "./modules/appointment/appointment.module";
 import { APP_GUARD } from "@nestjs/core";
 import { RolesGuard } from "./modules/auth/guards/roles.guard";
 import { JwtAuthGuard } from "./modules/auth/guards/jwt-auth.guard";
+import {DeliveryRequestsModule} from "./modules/deliveries/delivery-requests.module";
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { JwtAuthGuard } from "./modules/auth/guards/jwt-auth.guard";
     ReviewsModule,
     PrestationsModule,
     AppointmentModule,
+    DeliveryRequestsModule
   ],
   controllers: [AppController],
   providers: [
