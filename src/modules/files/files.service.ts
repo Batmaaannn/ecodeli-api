@@ -19,26 +19,27 @@ export class FilesService {
 
   async createRegistrationRequestFile(registration: {
     files: Express.Multer.File[];
-    fileName: string;
     info?: string;
     tokenRequest: string;
     registrationRequestId: number;
   }) {
-    const { fileName, files, info, tokenRequest, registrationRequestId } =
-      registration;
-    console.log(registration);
+    const { files, info, tokenRequest, registrationRequestId } = registration;
+    console.log("ICI", registration);
+
     if (!files.length) {
       throw new HttpException("No files received", HttpStatus.BAD_REQUEST);
     }
 
+    const createdFiles = [];
+
     for (const file of files) {
-      const fileNameSlugified = slugify(fileName, { lower: true }).replace(
-        /\.jpg|\.jpeg|\.png/i,
-        ".pdf"
-      );
+      console.log("file", file, file.originalname);
+      const fileNameSlugified = slugify(file.originalname, {
+        lower: true,
+      }).replace(/\.jpg|\.jpeg|\.png/i, ".pdf");
 
       const fileFullPath = `${tokenRequest}/${fileNameSlugified}`;
-      console.log("fileFullPath", fileFullPath);
+      console.log("fileFullPath", fileNameSlugified);
 
       try {
         const presignedURL: string = await this.processFile(
@@ -47,7 +48,7 @@ export class FilesService {
           tokenRequest.toString()
         );
 
-        const registration = {
+        const fileRecord = {
           ...(info && { info }),
           file_name: fileNameSlugified,
           file_url: fileFullPath,
@@ -55,21 +56,22 @@ export class FilesService {
           target_id: registrationRequestId,
         };
 
-        const createdFile = await this.insertOne(registration);
+        const createdFile = await this.insertOne(fileRecord);
 
-        return {
+        createdFiles.push({
           ...createdFile,
           url: presignedURL,
-        };
+        });
       } catch (err) {
-        console.log(err);
+        console.error(err);
         throw new HttpException(
           "Error while creating registration request file",
           HttpStatus.INTERNAL_SERVER_ERROR
         );
       }
     }
-    return;
+
+    return createdFiles;
   }
 
   async updateFileRegistration(

@@ -67,7 +67,6 @@ export class RegistrationRequestsService {
 
     if (files?.length > 0) {
       await this.filesService.createRegistrationRequestFile({
-        fileName,
         files,
         tokenRequest,
         registrationRequestId: registrationRequest.id,
@@ -88,31 +87,52 @@ export class RegistrationRequestsService {
   async createDeliveryAgentRequest(
     createDeliveryAgentRequestDto: CreateDeliveryAgentRequestDto
   ) {
-    const { firstName, lastName, email, phoneNumber } =
-      createDeliveryAgentRequestDto;
-
-    const token_request = uuidv4();
-
-    // await this.insertOneDeliveryAgentRequest({
-    //   first_name: firstName,
-    //   last_name: lastName,
-
-    //   is_processed: false,
-    //   token_request,
-    //   agent_type: AgentType.DELIVERY_AGENT,
-    // });
-
-    await sendRegistrationRequest({
-      tokenRequest: token_request,
-      fullName: `${firstName} ${lastName}`,
-      agentType: AgentType.DELIVERY_AGENT,
+    const {
+      firstName,
+      lastName,
       email,
-      phone: phoneNumber,
+      phoneNumber,
+      companyAddress,
+      companyCity,
+      companyName,
+      files,
+      vehiculeType,
+    } = createDeliveryAgentRequestDto;
+
+    const tokenRequest = uuidv4();
+
+    const registrationRequest = await this.insertOneDeliveryAgentRequest({
+      ...createDeliveryAgentRequestDto,
+      first_name: firstName,
+      last_name: lastName,
+      phone_number: phoneNumber,
+      company_name: companyName,
+      company_address: companyAddress,
+      company_city: companyCity,
+      token_request: tokenRequest,
+      agent_type: AgentType.DELIVERY_AGENT,
+      vehicle_type: vehiculeType,
     });
+
+    if (files?.length > 0) {
+      await this.filesService.createRegistrationRequestFile({
+        files,
+        tokenRequest,
+        registrationRequestId: registrationRequest.id,
+      });
+    }
+
+    // await sendRegistrationRequest({
+    //   tokenRequest: tokenRequest,
+    //   fullName: `${firstName} ${lastName}`,
+    //   agentType: AgentType.DELIVERY_AGENT,
+    //   email,
+    //   phone: phoneNumber,
+    // });
 
     return;
   }
-  m;
+
   async getRegistrationRequestById(id: number): Promise<any> {
     const registrationRequest = await this.findOneByIdWithRelations(id);
 
@@ -237,9 +257,12 @@ export class RegistrationRequestsService {
       | "last_name"
       | "email"
       | "phone_number"
+      | "company_name"
+      | "company_address"
+      | "company_city"
       | "agent_type"
-      | "vehicle_type"
       | "token_request"
+      | "vehicle_type"
     >
   ): Promise<RegistrationRequest> {
     return this.registrationRequestRepository.save(deliveryAgentToCreate);

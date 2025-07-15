@@ -40,5 +40,8 @@ export class CreateDeliveryAgentRequestDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsEnum(VehiculeType)
-  vehicleType: VehiculeType;
+  vehiculeType: VehiculeType;
+
+  @ApiProperty()
+  files: Express.Multer.File[];
 }

@@ -119,8 +119,10 @@ export class RegistrationRequestsController {
   }
 
   @Public()
+  @UseInterceptors(FilesInterceptor("files"))
   @Post("delivery-agent")
   async createDeliveryAgent(
+    @UploadedFiles() files: Express.Multer.File[],
     @Body() createDeliveryAgentRequestDto: CreateDeliveryAgentRequestDto
   ) {
     const { siret, email } = createDeliveryAgentRequestDto;
@@ -144,9 +146,24 @@ export class RegistrationRequestsController {
       throw new HttpException("Email exists", HttpStatus.CONFLICT);
     }
 
-    return this.registrationRequestsService.createDeliveryAgentRequest(
-      createDeliveryAgentRequestDto
-    );
+    if (files?.length > 0) {
+      files.map((file) => {
+        if (
+          !file.mimetype.match(
+            /jpg|jpeg|png|application\/octet-stream|application\/pdf/i
+          )
+        )
+          throw new HttpException(
+            "Can only process jpg, jpeg or pdf files",
+            HttpStatus.BAD_REQUEST
+          );
+      });
+    }
+
+    return this.registrationRequestsService.createDeliveryAgentRequest({
+      ...createDeliveryAgentRequestDto,
+      files,
+    });
   }
 
   // @Patch(":id/status")
