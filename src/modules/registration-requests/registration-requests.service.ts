@@ -6,7 +6,7 @@ import { RegistrationRequest } from "./entities/registration-requests.entity";
 import { v4 as uuidv4 } from "uuid";
 import { AgentType } from "src/types/user";
 import { CreateDeliveryAgentRequestDto } from "./dto/create-registration-delivery-agent.dto";
-import { sendRegistrationRequest } from "src/utils/emails";
+import { sendRegistrationRequest } from "src/utils/emails/index.old";
 import { PrestationRegistrationRequest } from "./entities/prestation-registration-request.entity";
 import { FilesService } from "../files/files.service";
 import { FileTargetType } from "src/types/file";

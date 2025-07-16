@@ -30,7 +30,7 @@ export class DeliveryRequest {
     @Column()
     arrival_city: string;
 
-    @Column("decimal", { precision: 5, scale: 2 })
+    @Column("decimal", { precision: 10, scale: 2 })
     price: number;
 
     @Column({ type: "timestamptz" })

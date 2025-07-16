@@ -4,11 +4,12 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
+  JoinColumn, OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
+import {Trip} from "../../trip/entities/trip.entity";
 
 @Entity({ name: "delivery_agents" })
 export class DeliveryAgent {
