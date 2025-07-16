@@ -179,18 +179,22 @@ export class RegistrationRequestsController {
   //   );
   // }
 
-  @Post("/validate/id")
+  @Post("validate/:id")
+  @Roles(UserType.ADMIN)
   async validateAgent(@Param("id", ParseIntPipe) id: number) {
     const registrationRequest =
       await this.registrationRequestsService.findOneByIdWithRelations(id);
 
-    const { siret, email } = registrationRequest;
-    await isBlacklisted(email);
-
-    const siretExists = await this.serviceAgentsService.findOneBySiret(siret);
-    if (siretExists) {
-      throw new HttpException("Siret exists", HttpStatus.CONFLICT);
+    if (!registrationRequest) {
+      throw new HttpException(
+        `Registration request not found`,
+        HttpStatus.NOT_FOUND
+      );
     }
+
+    const { email } = registrationRequest;
+
+    await isBlacklisted(email);
 
     const existingEmail = await this.usersService.findOneByEmail(email);
     if (existingEmail) {
@@ -198,5 +202,20 @@ export class RegistrationRequestsController {
     }
 
     return this.registrationRequestsService.validateAgent(registrationRequest);
+  }
+
+  @Patch("reject/:id")
+  @Roles(UserType.ADMIN)
+  async updateFieldById(@Param("id", ParseIntPipe) id: number) {
+    const registrationRequest =
+      await this.registrationRequestsService.findOneByIdWithRelations(id);
+
+    if (!registrationRequest) {
+      throw new HttpException(
+        `Registration request not found`,
+        HttpStatus.NOT_FOUND
+      );
+    }
+    return this.registrationRequestsService.rejectRegistrationRequest(id);
   }
 }

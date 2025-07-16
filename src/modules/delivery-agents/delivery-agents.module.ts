@@ -3,10 +3,12 @@ import { DeliveryAgentsController } from "./delivery-agents.controller";
 import { DeliveryAgent } from "./entities/delivery-agents.entity";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { DeliveryAgentsService } from "./delivery-agents.service";
+import { UsersModule } from "../users/users.module";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([DeliveryAgent])],
+  imports: [TypeOrmModule.forFeature([DeliveryAgent]), UsersModule],
   providers: [DeliveryAgentsService],
   controllers: [DeliveryAgentsController],
+  exports: [DeliveryAgentsService],
 })
 export class DeliveryAgentsModule {}

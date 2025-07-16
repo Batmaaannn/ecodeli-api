@@ -15,6 +15,8 @@ import { Statut } from "src/types/statut";
 import { ServiceAgentsService } from "../service-agents/service-agents.service";
 import { CreateUserFromRegistrationRequestDto } from "./dto/create-user-registation-request.dto";
 import { CreateServiceAgentDto } from "../service-agents/dto/create-user-service-agent.dto";
+import { CreateDeliveryAgentDto } from "../delivery-agents/dto/create-user-delivery-agent.dto";
+import { DeliveryAgentsService } from "../delivery-agents/delivery-agents.service";
 
 @Injectable()
 export class RegistrationRequestsService {
@@ -24,6 +26,8 @@ export class RegistrationRequestsService {
     @InjectRepository(PrestationRegistrationRequest)
     private prestationRegistrationRequest: Repository<PrestationRegistrationRequest>,
     private serviceAgentsService: ServiceAgentsService,
+    private deliveryAgentsService: DeliveryAgentsService,
+
     private filesService: FilesService
   ) {}
 
@@ -182,7 +186,7 @@ export class RegistrationRequestsService {
   // }
 
   async validateAgent(createUserDto: CreateUserFromRegistrationRequestDto) {
-    const { agent_type } = createUserDto;
+    const { agent_type, statut } = createUserDto;
 
     //TODO: change prestations
     if (agent_type === AgentType.SERVICE_AGENT) {
@@ -196,12 +200,41 @@ export class RegistrationRequestsService {
         first_name: createUserDto.first_name,
         last_name: createUserDto.last_name,
         phone_number: createUserDto.phone_number,
-        prestationLinks: [],
       };
+
       return this.serviceAgentsService.createServiceAgent(serviceAgentDto);
+    } else if (agent_type === AgentType.DELIVERY_AGENT) {
+      const deliveryAgentDto: CreateDeliveryAgentDto = {
+        siret: createUserDto.siret,
+        token_request: createUserDto.token_request,
+        email: createUserDto.email,
+        company_name: createUserDto.company_name,
+        company_address: createUserDto.company_address,
+        company_city: createUserDto.company_city,
+        first_name: createUserDto.first_name,
+        last_name: createUserDto.last_name,
+        phone_number: createUserDto.phone_number,
+        vehicle_type: createUserDto.vehicle_type,
+      };
+
+      return this.deliveryAgentsService.createDeliveryAgent(deliveryAgentDto);
     }
 
-    return true;
+    await this.registrationRequestRepository.update(
+      { token_request: createUserDto.token_request },
+      { statut: Statut.ACCEPTED }
+    );
+
+    return;
+  }
+
+  async rejectRegistrationRequest(id: number) {
+    await this.registrationRequestRepository.update(
+      { id },
+      { statut: Statut.REJECTED }
+    );
+
+    return;
   }
 
   /* Db Request */

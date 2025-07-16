@@ -2,10 +2,16 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "./entities/user.entity";
 import { Repository } from "typeorm";
-import { CustomerUser, MerchantUser, ServiceAgentUser } from "src/types/user";
+import {
+  CustomerUser,
+  DeliveryAgentUser,
+  MerchantUser,
+  ServiceAgentUser,
+} from "src/types/user";
 import { Customer } from "../customers/entities/customer.entity";
 import { Merchant } from "../merchants/entities/merchants.entity";
 import { ServiceAgent } from "../service-agents/entities/service-agents.entity";
+import { DeliveryAgent } from "../delivery-agents/entities/delivery-agents.entity";
 
 @Injectable()
 export class UsersService {
@@ -75,6 +81,22 @@ export class UsersService {
       ...serviceAgentToCreate,
       email: serviceAgentToCreate.email.toLowerCase(),
       service_agent: serviceAgent,
+    });
+
+    return this.usersRepository.save(user);
+  }
+
+  async insertOneDeliveryAgent(
+    deliveryAgentToCreate: Pick<
+      DeliveryAgentUser,
+      "email" | "password" | "user_type"
+    >,
+    deliveryAgent: DeliveryAgent
+  ): Promise<User> {
+    const user = this.usersRepository.create({
+      ...deliveryAgentToCreate,
+      email: deliveryAgentToCreate.email.toLowerCase(),
+      delivery_agent: deliveryAgent,
     });
 
     return this.usersRepository.save(user);

@@ -4,12 +4,13 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn, OneToMany,
+  JoinColumn,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
-import {Trip} from "../../trip/entities/trip.entity";
+import { Trip } from "../../trip/entities/trip.entity";
 
 @Entity({ name: "delivery_agents" })
 export class DeliveryAgent {
@@ -42,9 +43,6 @@ export class DeliveryAgent {
   user?: User;
   @Column({ nullable: true })
   user_id?: number;
-
-  @Column({ unique: true })
-  driving_license: string;
 
   @OneToMany(() => Trip, (trip) => trip.delivery_agent)
   trips: Trip[];
