@@ -48,7 +48,7 @@ export class DeliveryAgentsService {
       createdDeliveryAgent
     );
 
-    await this.updateOneById(insertedUser.service_agent.id, {
+    await this.updateOneById(insertedUser.delivery_agent.id, {
       user_id: insertedUser.id,
     });
 

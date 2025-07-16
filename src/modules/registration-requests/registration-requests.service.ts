@@ -158,33 +158,6 @@ export class RegistrationRequestsService {
     };
   }
 
-  // async updateRegistrationRequestStatus(
-  //   id: number,
-  //   { status }: UpdateStatusRequestDto
-  // ): Promise<void> {
-  //   const request = await this.findOneByIdWithRelations(id);
-  //   if (!request) {
-  //     throw new HttpException(
-  //       "Registration request not found",
-  //       HttpStatus.NOT_FOUND
-  //     );
-  //   }
-
-  //   const newStatus = status ? Statut.ACCEPTED : Statut.REJECTED;
-
-  //   await this.registrationRequestRepository.update(
-  //     { id },
-  //     { statut: newStatus }
-  //   );
-
-  //   if (
-  //     newStatus === Statut.ACCEPTED &&
-  //     request.agent_type === AgentType.SERVICE_AGENT
-  //   ) {
-  //     await this.serviceAgentsService.createServiceAgent(request);
-  //   }
-  // }
-
   async validateAgent(createUserDto: CreateUserFromRegistrationRequestDto) {
     const { agent_type, statut } = createUserDto;
 
