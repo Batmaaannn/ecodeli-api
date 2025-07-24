@@ -24,7 +24,6 @@ export class FilesService {
     registrationRequestId: number;
   }) {
     const { files, info, tokenRequest, registrationRequestId } = registration;
-    console.log("ICI", registration);
 
     if (!files.length) {
       throw new HttpException("No files received", HttpStatus.BAD_REQUEST);
@@ -33,13 +32,11 @@ export class FilesService {
     const createdFiles = [];
 
     for (const file of files) {
-      console.log("file", file, file.originalname);
       const fileNameSlugified = slugify(file.originalname, {
         lower: true,
       }).replace(/\.jpg|\.jpeg|\.png/i, ".pdf");
 
       const fileFullPath = `${tokenRequest}/${fileNameSlugified}`;
-      console.log("fileFullPath", fileNameSlugified);
 
       try {
         const presignedURL: string = await this.processFile(
@@ -129,6 +126,59 @@ export class FilesService {
     );
 
     return getFileSignedUrl(uploadedFilePath, config.storage.bucket);
+  }
+
+  async createMerchantFile(registration: {
+    files: Express.Multer.File[];
+    info?: string;
+    merchantId: number;
+  }) {
+    const { files, info, merchantId } = registration;
+
+    if (!files.length) {
+      throw new HttpException("No files received", HttpStatus.BAD_REQUEST);
+    }
+
+    const createdFiles = [];
+
+    for (const file of files) {
+      const fileNameSlugified = slugify(file.originalname, {
+        lower: true,
+      }).replace(/\.jpg|\.jpeg|\.png/i, ".pdf");
+
+      const fileFullPath = `merchant/${merchantId}/${fileNameSlugified}`;
+
+      try {
+        const presignedURL: string = await this.processFile(
+          fileFullPath,
+          file,
+          merchantId.toString()
+        );
+
+        const fileRecord = {
+          ...(info && { info }),
+          file_name: fileNameSlugified,
+          file_url: fileFullPath,
+          target_type: FileTargetType.MERCHANT,
+          target_id: merchantId,
+        };
+
+        const createdFile = await this.insertOne(fileRecord);
+
+        createdFiles.push({
+          ...createdFile,
+          url: presignedURL,
+        });
+      } catch (err) {
+        console.error(err);
+        throw new HttpException(
+          "Error while creating registration request file",
+          HttpStatus.INTERNAL_SERVER_ERROR
+        );
+      }
+    }
+
+    return createdFiles;
   }
 
   /* Db Request */

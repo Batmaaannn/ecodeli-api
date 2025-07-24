@@ -39,4 +39,7 @@ export class CreateUserMerchantDto {
   @ApiProperty()
   @IsNotEmpty()
   phoneNumber: string;
+
+  @ApiProperty()
+  files: Express.Multer.File[];
 }

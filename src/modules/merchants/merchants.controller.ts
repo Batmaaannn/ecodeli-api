@@ -4,6 +4,8 @@ import {
   HttpException,
   HttpStatus,
   Post,
+  UploadedFiles,
+  UseInterceptors,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { MerchantsService } from "./merchants.service";
@@ -11,6 +13,7 @@ import { UsersService } from "../users/users.service";
 import { Public } from "../auth/decorator/public.decorator";
 import { isBlacklisted } from "src/utils/emails/email-blacklisted";
 import { CreateUserMerchantDto } from "./dto/create-user-merchant.dto";
+import { FilesInterceptor } from "@nestjs/platform-express";
 
 @ApiTags("merchants")
 @Controller("merchants")
@@ -21,8 +24,12 @@ export class MerchantsController {
   ) {}
 
   @Public()
+  @UseInterceptors(FilesInterceptor("files"))
   @Post("create-merchant")
-  async createMerchant(@Body() createUserDto: CreateUserMerchantDto) {
+  async createMerchant(
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body() createUserDto: CreateUserMerchantDto
+  ) {
     const { email, siret } = createUserDto;
 
     const siretExists = await this.merchantsService.findOneBySiret(siret);
@@ -36,6 +43,6 @@ export class MerchantsController {
 
     await isBlacklisted(email);
 
-    return this.merchantsService.createMerchant(createUserDto);
+    return this.merchantsService.createMerchant({ ...createUserDto, files });
   }
 }

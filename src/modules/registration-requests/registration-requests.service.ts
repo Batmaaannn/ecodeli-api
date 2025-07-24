@@ -27,7 +27,6 @@ export class RegistrationRequestsService {
     private prestationRegistrationRequest: Repository<PrestationRegistrationRequest>,
     private serviceAgentsService: ServiceAgentsService,
     private deliveryAgentsService: DeliveryAgentsService,
-
     private filesService: FilesService
   ) {}
 
@@ -161,6 +160,8 @@ export class RegistrationRequestsService {
   async validateAgent(createUserDto: CreateUserFromRegistrationRequestDto) {
     const { agent_type, statut } = createUserDto;
 
+    let result;
+
     //TODO: change prestations
     if (agent_type === AgentType.SERVICE_AGENT) {
       const serviceAgentDto: CreateServiceAgentDto = {
@@ -175,7 +176,7 @@ export class RegistrationRequestsService {
         phone_number: createUserDto.phone_number,
       };
 
-      return this.serviceAgentsService.createServiceAgent(serviceAgentDto);
+      result = await this.serviceAgentsService.createServiceAgent(serviceAgentDto);
     } else if (agent_type === AgentType.DELIVERY_AGENT) {
       const deliveryAgentDto: CreateDeliveryAgentDto = {
         siret: createUserDto.siret,
@@ -190,7 +191,7 @@ export class RegistrationRequestsService {
         vehicle_type: createUserDto.vehicle_type,
       };
 
-      return this.deliveryAgentsService.createDeliveryAgent(deliveryAgentDto);
+      result = await this.deliveryAgentsService.createDeliveryAgent(deliveryAgentDto);
     }
 
     await this.registrationRequestRepository.update(
@@ -198,7 +199,7 @@ export class RegistrationRequestsService {
       { statut: Statut.ACCEPTED }
     );
 
-    return;
+    return result;
   }
 
   async rejectRegistrationRequest(id: number) {

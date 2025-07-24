@@ -5,13 +5,15 @@ import { UsersService } from "../users/users.service";
 import { Repository } from "typeorm";
 import { CreateUserMerchantDto } from "./dto/create-user-merchant.dto";
 import { UserType } from "src/types/user";
+import { FilesService } from "../files/files.service";
 
 @Injectable()
 export class MerchantsService {
   constructor(
     @InjectRepository(Merchant)
     private readonly merchantsRepository: Repository<Merchant>,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private readonly filesService: FilesService
   ) {}
 
   async createMerchant(createUserDto: CreateUserMerchantDto) {
@@ -25,6 +27,7 @@ export class MerchantsService {
       companyAddress,
       companyName,
       companyCity,
+      files,
     } = createUserDto;
 
     const createdMerchant = await this.insertOne({
@@ -49,6 +52,13 @@ export class MerchantsService {
     await this.updateOneById(insertedUser.merchant_id, {
       user_id: insertedUser.id,
     });
+
+    if (files?.length > 0) {
+      await this.filesService.createMerchantFile({
+        files,
+        merchantId: createdMerchant.id,
+      });
+    }
   }
 
   /* Db Requests */

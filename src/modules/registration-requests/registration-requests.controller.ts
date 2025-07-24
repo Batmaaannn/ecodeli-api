@@ -207,6 +207,7 @@ export class RegistrationRequestsController {
   @Patch("reject/:id")
   @Roles(UserType.ADMIN)
   async updateFieldById(@Param("id", ParseIntPipe) id: number) {
+    console.log("id", id);
     const registrationRequest =
       await this.registrationRequestsService.findOneByIdWithRelations(id);
 
