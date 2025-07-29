@@ -12,7 +12,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
-import { Service } from "./service.entity";
+import { ServiceAgentPrestation } from "src/modules/prestations/entities/service-agent-prestation.entity";
 
 @Entity({ name: "appointments" })
 export class Appointment {
@@ -35,9 +35,11 @@ export class Appointment {
   @Column({ type: "text", nullable: true })
   special_requests: string;
 
-  @ManyToOne(() => Service, (service) => service.appointments)
-  @JoinColumn({ name: "service_id" })
-  service: Service;
+  @Column({ nullable: true })
+  estimated_duration_minutes: number;
+
+  @Column({ nullable: true })
+  actual_duration_minutes: number;
 
   @OneToMany(() => Rating, (rating) => rating.appointment)
   ratings: Rating[];
@@ -55,6 +57,11 @@ export class Appointment {
   service_agent: ServiceAgent;
   @Column()
   service_agent_id: number;
+
+  @ManyToOne(() => ServiceAgentPrestation, (spp) => spp.appointments)
+  @JoinColumn({ name: "service_agent_prestation_id" })
+  serviceAgentPrestation: ServiceAgentPrestation;
+  service_agent_prestation_id: number;
 
   @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
   created_at: Date;

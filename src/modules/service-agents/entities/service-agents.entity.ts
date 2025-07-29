@@ -1,4 +1,5 @@
 import { Appointment } from "src/modules/appointment/entities/appointment.entity";
+import { ServiceAgentPrestation } from "src/modules/prestations/entities/service-agent-prestation.entity";
 import { User } from "src/modules/users/entities/user.entity";
 import {
   Column,
@@ -43,9 +44,6 @@ export class ServiceAgent {
   @Column({ type: "text", nullable: true })
   certifications: string;
 
-  @Column({ type: "decimal", precision: 8, scale: 2, default: 0 })
-  hourly_rate: number;
-
   @Column({ type: "decimal", precision: 10, scale: 2, default: 0 })
   monthly_earnings: number;
 
@@ -60,6 +58,9 @@ export class ServiceAgent {
 
   @OneToMany(() => Appointment, (appointment) => appointment.service_agent)
   appointments: Appointment[];
+
+  @OneToMany(() => ServiceAgentPrestation, (sap) => sap.service_agent)
+  serviceAgentPrestations: ServiceAgentPrestation[];
 
   @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
   created_at: Date;

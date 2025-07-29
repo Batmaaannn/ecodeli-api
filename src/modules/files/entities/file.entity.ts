@@ -7,7 +7,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
-import { Statut } from "src/types/statut";
+import { Status } from "src/types/status";
 import { FileTargetType } from "src/types/file";
 
 @Entity({ name: "file" })
@@ -26,10 +26,10 @@ export class File {
 
   @Column({
     type: "enum",
-    enum: Statut,
-    default: Statut.PENDING,
+    enum: Status,
+    default: Status.PENDING,
   })
-  status: Statut;
+  status: Status;
 
   @Column()
   file_url: string;

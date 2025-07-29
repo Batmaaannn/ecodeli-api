@@ -46,6 +46,8 @@ export class Customer {
     enum: SubscriptionPlan,
     default: SubscriptionPlan.FREE,
   })
+  subscription_plan: SubscriptionPlan;
+
   @Column({ type: "decimal", precision: 10, scale: 2, default: 0 })
   wallet_balance: number;
 

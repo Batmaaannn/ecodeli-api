@@ -17,6 +17,7 @@ import { Merchant } from "src/modules/merchants/entities/merchants.entity";
 import { Rating } from "src/modules/ratings/entities/rating.entity";
 import { Payment } from "src/modules/payments/entities/payment.entity";
 import { Notification } from "src/modules/notifications/entities/notification.entity";
+import { Document } from "src/modules/documents/entities/document.entity";
 
 
 @Entity({ name: "users" })
@@ -33,6 +34,12 @@ export class User {
 
   @Column({ type: "enum", enum: UserType, default: UserType.CUSTOMER })
   user_type: UserType;
+
+  @Column({ default: false })
+  is_validated: boolean;
+
+  @Column({ default: true })
+  is_active: boolean;
 
   @OneToOne(() => Customer, (customer) => customer.user, {
     nullable: true,
@@ -68,8 +75,8 @@ export class User {
   @OneToMany(() => Notification, (notification) => notification.user)
   notifications: Notification[];
 
-  // @OneToMany(() => Document, (document) => document.user)
-  // documents: Document[];
+  @OneToMany(() => Document, (document) => document.user)
+  documents: Document[];
 
   @OneToMany(() => Rating, (rating) => rating.rater)
   ratingsGiven: Rating[];

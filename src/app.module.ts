@@ -5,7 +5,6 @@ import { UsersModule } from "./modules/users/users.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import config from "./config";
-import { RegistrationRequestsModule } from "./modules/registration-requests/registration-requests.module";
 import { CustomersModule } from "./modules/customers/customers.module";
 import { DeliveryAgentsModule } from "./modules/delivery-agents/delivery-agents.module";
 import { ServiceAgentsModule } from "./modules/service-agents/service-agents.module";
@@ -25,6 +24,7 @@ import { NotificationsModule } from "./modules/notifications/notifications.modul
 import { PaymentsModule } from "./modules/payments/payments.module";
 import { Announcement } from "./modules/announcements/entities/annoucement.entity";
 import { AnnouncementsModule } from "./modules/announcements/announcements.module";
+import { DocumentsModule } from "./modules/documents/documents.module";
 
 @Module({
   imports: [
@@ -61,7 +61,7 @@ import { AnnouncementsModule } from "./modules/announcements/announcements.modul
     ScheduleModule.forRoot(),
     UsersModule,
     AuthModule,
-    RegistrationRequestsModule,
+    //RegistrationRequestsModule,
     CustomersModule,
     DeliveryAgentsModule,
     ServiceAgentsModule,
@@ -74,6 +74,8 @@ import { AnnouncementsModule } from "./modules/announcements/announcements.modul
     NotificationsModule,
     PaymentsModule,
     AnnouncementsModule,
+    DocumentsModule,
+    
   ],
   controllers: [AppController],
   providers: [

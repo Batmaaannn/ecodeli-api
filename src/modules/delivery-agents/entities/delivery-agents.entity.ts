@@ -51,6 +51,9 @@ export class DeliveryAgent {
   @Column({ default: false })
   is_validated: boolean;
 
+  @Column({ unique: true, nullable: true })
+  nfc_card_id: string;
+
   @OneToMany(() => Delivery, (delivery) => delivery.delivery_agent)
   deliveries: Delivery[];
 

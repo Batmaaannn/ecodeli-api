@@ -7,9 +7,8 @@ import {
 } from "class-validator";
 import { VehiculeType } from "src/types/vehicule";
 import { ApiProperty } from "@nestjs/swagger";
-import { Statut } from "src/types/statut";
+import { Status } from "src/types/status";
 import { AgentType } from "src/types/user";
-import { PrestationRegistrationRequest } from "../entities/prestation-registration-request.entity";
 
 export class CreateUserFromRegistrationRequestDto {
   @ApiProperty()
@@ -54,17 +53,17 @@ export class CreateUserFromRegistrationRequestDto {
   @IsEnum(AgentType)
   agent_type: AgentType;
 
-  @ApiProperty()
-  @IsOptional()
-  prestationLinks?: PrestationRegistrationRequest[];
+  // @ApiProperty()
+  // @IsOptional()
+  // prestationLinks?: PrestationRegistrationRequest[];
 
   @ApiProperty({ enum: VehiculeType, required: false })
   @IsEnum(VehiculeType)
   @IsOptional()
   vehicle_type?: VehiculeType;
 
-  @ApiProperty({ enum: Statut, default: Statut.PENDING })
-  @IsEnum(Statut)
+  @ApiProperty({ enum: Status, default: Status.PENDING })
+  @IsEnum(Status)
   @IsNotEmpty()
-  statut: Statut;
+  status: Status;
 }

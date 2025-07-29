@@ -7,8 +7,6 @@ import {
 } from "class-validator";
 import { VehiculeType } from "src/types/vehicule";
 import { ApiProperty } from "@nestjs/swagger";
-import { Statut } from "src/types/statut";
-import { AgentType } from "src/types/user";
 
 export class CreateDeliveryAgentDto {
   @ApiProperty()

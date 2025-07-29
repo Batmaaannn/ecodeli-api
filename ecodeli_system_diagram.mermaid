@@ -1,59 +1,89 @@
 erDiagram
     %% Entités Utilisateurs
     USERS {
-        int user_id PK
-        string email
-        string password_hash
-        enum user_type "deliverer|client|merchant|provider|admin"
-        datetime created_at
+        int id PK
+        string email UK
+        string password
+        enum user_type "customer|delivery_agent|merchant|service_agent|admin"
         boolean is_validated
         boolean is_active
+        datetime created_at
+        datetime updated_at
     }
 
-    DELIVERERS {
-        int deliverer_id PK
+    DELIVERY_AGENTS {
+        int id PK
         int user_id FK
+        string siret
+        string company_name
+        string company_address
+        string company_city
+        string first_name
+        string last_name
+        string phone_number
+        enum vehicle_type "car|van|truck|scooter|bike|foot"
         string license_number
-        string vehicle_type
-        blob documents
         decimal rating
         boolean is_validated
-        string nfc_card_id
+        string nfc_card_id UK
+        datetime created_at
+        datetime updated_at
     }
 
-    CLIENTS {
-        int client_id PK
+    CUSTOMERS {
+        int id PK
         int user_id FK
-        string subscription_plan "free|starter|premium"
+        string first_name
+        string last_name
+        string phone_number
+        string address_1
+        string address_2
+        string postal_code
+        string city
+        enum subscription_plan "free|starter|premium"
         decimal wallet_balance
         datetime subscription_start
         boolean tutorial_completed
+        datetime created_at
+        datetime updated_at
     }
 
     MERCHANTS {
-        int merchant_id PK
+        int id PK
         int user_id FK
         string company_name
         string siret
-        blob contract_document
-        decimal commission_rate
-        boolean is_partner
+        string iban
+        string address_1
+        string address_2
+        string postal_code
+        string city
+        string phone_number
+        datetime created_at
+        datetime updated_at
     }
 
-    SERVICE_PROVIDERS {
-        int provider_id PK
+    SERVICE_AGENTS {
+        int id PK
         int user_id FK
-        string certifications
-        json available_services
-        decimal hourly_rate
-        decimal monthly_earnings
-        datetime last_invoice_date
+        string siret
+        string company_name
+        string company_address
+        string company_city
+        string first_name
+        string last_name
+        string phone_number
+        string iban
+        decimal overall_rating
+        int total_jobs
+        datetime created_at
+        datetime updated_at
     }
 
     %% Entités Métier - Livraisons
     ANNOUNCEMENTS {
-        int announcement_id PK
-        int client_id FK
+        int id PK
+        int customer_id FK
         string title
         text description
         string departure_city
@@ -61,55 +91,83 @@ erDiagram
         decimal price
         datetime pickup_date
         datetime delivery_date
+        boolean assurance
+        boolean urgent
+        string pickup_instructions
         enum status "posted|matched|in_progress|delivered|cancelled"
         enum announcement_type "package|service|transport"
+        datetime created_at
+        datetime updated_at
     }
 
     DELIVERIES {
-        int delivery_id PK
+        int id PK
         int announcement_id FK
-        int deliverer_id FK
+        int delivery_agent_id FK
         enum delivery_type "full|partial"
-        string tracking_code
-        decimal package_weight
-        string package_dimensions
+        string tracking_code UK
         enum status "assigned|picked_up|in_transit|delivered"
         datetime pickup_time
         datetime delivery_time
         string delivery_code
+        datetime created_at
     }
 
     PACKAGES {
-        int package_id PK
+        int id PK
         int delivery_id FK
-        string package_type
-        decimal declared_value
-        boolean insurance_required
-        blob photos
-        string special_instructions
         int storage_box_id FK
+        string object_type
+        decimal weight
+        string dimensions
+        decimal value
+        string description
+        string photo_url
+        datetime created_at
     }
 
     %% Entités Métier - Services
-    SERVICES {
-        int service_id PK
-        string service_name
-        string service_category "transport_person|airport_transfer|shopping|pet_care|maintenance"
+    PRESTATIONS {
+        int id PK
+        string label
+        string category
+        decimal ecodeli_price
+        string pricing_unit "unit|hour|km|day"
         text description
-        decimal base_price
-        int duration_minutes
+        boolean is_active
+        datetime created_at
+        datetime updated_at
     }
 
-    BOOKINGS {
-        int booking_id PK
-        int client_id FK
-        int provider_id FK
-        int service_id FK
-        datetime booking_date
-        datetime service_date
-        enum status "requested|confirmed|in_progress|completed|cancelled"
+    SERVICE_AGENT_PRESTATIONS {
+        int id PK
+        int service_agent_id FK
+        int prestation_id FK
+        decimal requested_price
+        decimal applied_price
+        enum price_status "pending|approved|rejected"
+        text ecodeli_comment
+        boolean is_available
+        datetime validated_at
+        int validated_by
+        datetime created_at
+        datetime updated_at
+    }
+
+    APPOINTMENTS {
+        int id PK
+        int customer_id FK
+        int service_agent_prestation_id FK
+        datetime appointment_date
+        string address
+        string city
+        string postal_code
+        text description
+        enum status "pending|confirmed|in_progress|completed|cancelled"
         decimal final_price
-        text special_requests
+        text special_instructions
+        datetime created_at
+        datetime updated_at
     }
 
     %% Entités Système

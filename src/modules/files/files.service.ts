@@ -8,7 +8,7 @@ import config from "src/config";
 import { FileTargetType } from "src/types/file";
 import { UpdateFileStatutRegistrationDto } from "./dto/update-file-statut-registration.dto";
 import { checkUserCanUpdateRegistrationFile } from "src/utils/authorized";
-import { Statut } from "src/types/statut";
+import { Status } from "src/types/status";
 
 @Injectable()
 export class FilesService {
@@ -98,11 +98,11 @@ export class FilesService {
       file.validity = validityDate;
 
       switch (status) {
-        case Statut.ACCEPTED:
+        case Status.ACCEPTED:
           file.approval_date = new Date();
           break;
-        case Statut.REJECTED:
-        case Statut.PENDING:
+        case Status.REJECTED:
+        case Status.PENDING:
           file.approval_date = null;
           break;
       }
