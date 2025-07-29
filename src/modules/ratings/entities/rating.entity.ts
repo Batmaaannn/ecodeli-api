@@ -1,15 +1,14 @@
-import { Customer } from "src/modules/customers/entities/customer.entity";
-import { ServiceAgent } from "src/modules/service-agents/entities/service-agents.entity";
+import { Appointment } from "src/modules/appointment/entities/appointment.entity";
+import { Delivery } from "src/modules/deliveries/entities/delivery.entity";
 import { User } from "src/modules/users/entities/user.entity";
+import { RatingType } from "src/types/rating";
 import {
   Column,
   CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToOne,
   PrimaryGeneratedColumn,
-  RelationId,
   UpdateDateColumn,
 } from "typeorm";
 
@@ -52,10 +51,10 @@ export class Rating {
   delivery: Delivery;
   delivery_id: number;
 
-  @ManyToOne(() => Booking, (booking) => booking.ratings)
-  @JoinColumn({ name: "booking_id" })
-  booking: Booking;
-  booking_id: number;
+  @ManyToOne(() => Appointment, (appointment) => appointment.ratings)
+  @JoinColumn({ name: "appointment_id" })
+  appointment: Appointment;
+  appointment_id: number;
 
   @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
   created_at: Date;

@@ -8,7 +8,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { CustomersService } from "../customers/customers.service";
 import { ServiceAgentsService } from "../service-agents/service-agents.service";
-import { Rating } from "./entities/ratings.entity";
+import { Rating } from "./entities/rating.entity";
 import { CreateRatingDto } from "./dto/create-rating.dto";
 
 @Injectable()
@@ -36,8 +36,6 @@ export class RatingsService {
     }
 
     const rated = this.ratingRepository.create({
-      customer,
-      serviceAgent,
       rating,
       comment,
       date,
@@ -49,10 +47,11 @@ export class RatingsService {
   /* Db Requests */
 
   async findByServiceAgent(serviceAgentId: number): Promise<Rating[]> {
-    return this.ratingRepository.find({
-      where: { service_agent_id: serviceAgentId },
-      relations: ["customer"],
-      order: { date: "DESC" },
-    });
+    // return this.ratingRepository.find({
+    //   where: { service_agent_id: serviceAgentId },
+    //   relations: ["customer"],
+    //   order: { date: "DESC" },
+    // });
+    return;
   }
 }

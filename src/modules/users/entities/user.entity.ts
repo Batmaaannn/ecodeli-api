@@ -14,7 +14,10 @@ import { Customer } from "src/modules/customers/entities/customer.entity";
 import { DeliveryAgent } from "src/modules/delivery-agents/entities/delivery-agents.entity";
 import { ServiceAgent } from "src/modules/service-agents/entities/service-agents.entity";
 import { Merchant } from "src/modules/merchants/entities/merchants.entity";
-import { Rating } from "src/modules/ratings/entities/ratings.entity";
+import { Rating } from "src/modules/ratings/entities/rating.entity";
+import { Payment } from "src/modules/payments/entities/payment.entity";
+import { Notification } from "src/modules/notifications/entities/notification.entity";
+
 
 @Entity({ name: "users" })
 export class User {
@@ -59,11 +62,11 @@ export class User {
   @RelationId((user: User) => user.merchant)
   merchant_id?: number;
 
-  // @OneToMany(() => Payment, (payment) => payment.user)
-  // payments: Payment[];
+  @OneToMany(() => Payment, (payment) => payment.user)
+  payments: Payment[];
 
-  // @OneToMany(() => Notification, (notification) => notification.user)
-  // notifications: Notification[];
+  @OneToMany(() => Notification, (notification) => notification.user)
+  notifications: Notification[];
 
   // @OneToMany(() => Document, (document) => document.user)
   // documents: Document[];

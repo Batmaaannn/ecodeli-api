@@ -1,28 +1,49 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from "typeorm";
 import { Delivery } from "./delivery.entity";
+import { StorageBox } from "src/modules/storages/entities/storage-box.entity";
 
 @Entity({ name: "packages" })
 export class Package {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column()
+  package_type: string;
+
+  @Column({ type: "decimal", precision: 8, scale: 3 })
+  weight: number; //kg
+
   @Column({ nullable: true })
-  photo?: string;
+  length: number; //cm
+
+  @Column({ nullable: true })
+  width: number; //cm
+
+  @Column({ nullable: true })
+  height: number; //cm
 
   @Column()
   quantity: number;
 
-  @Column()
-  label: string;
+  @Column({ nullable: true })
+  photos: string;
 
-  @Column("decimal", { precision: 10, scale: 2 })
-  poids: number;
+  @Column({ nullable: true })
+  fragile: boolean;
 
-  @Column({ name: "additional_info", nullable: true })
-  additional_info?: string;
-
-  @ManyToOne(() => Delivery, (delivery) => delivery.packages, {
-    onDelete: "CASCADE",
-  })
+  @ManyToOne(() => Delivery, (delivery) => delivery.packages)
+  @JoinColumn({ name: "delivery_id" })
   delivery: Delivery;
+  delivery_id: number;
+
+  @ManyToOne(() => StorageBox, (storageBox) => storageBox.packages)
+  @JoinColumn({ name: "storage_box_id" })
+  storageBox: StorageBox;
+  storage_box_id: number;
 }

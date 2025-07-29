@@ -11,17 +11,20 @@ import { DeliveryAgentsModule } from "./modules/delivery-agents/delivery-agents.
 import { ServiceAgentsModule } from "./modules/service-agents/service-agents.module";
 import { MerchantsModule } from "./modules/merchants/merchants.module";
 import { PrestationsModule } from "./modules/prestations/prestations.module";
-import { ReviewsModule } from "./modules/ratings/ratings.module";
+import { RatingsModule } from "./modules/ratings/ratings.module";
 import { AppointmentModule } from "./modules/appointment/appointment.module";
 import { APP_GUARD } from "@nestjs/core";
 import { RolesGuard } from "./modules/auth/guards/roles.guard";
 import { JwtAuthGuard } from "./modules/auth/guards/jwt-auth.guard";
-import { DeliveryRequestsModule } from "./modules/deliveries/delivery-requests.module";
-import { TripModule } from "./modules/trip/trip.modules";
+import { DeliveriesModule } from "./modules/deliveries/deliveries.module";
 import { MailerModule } from "@nestjs-modules/mailer";
 import { HandlebarsAdapter } from "@nestjs-modules/mailer/dist/adapters/handlebars.adapter";
 import { ScheduleModule } from "@nestjs/schedule";
-import { DeliveryMatchModule } from "./modules/deliveries/delivery-match.module";
+import { StoragesModule } from "./modules/storages/storages.module";
+import { NotificationsModule } from "./modules/notifications/notifications.module";
+import { PaymentsModule } from "./modules/payments/payments.module";
+import { Announcement } from "./modules/announcements/entities/annoucement.entity";
+import { AnnouncementsModule } from "./modules/announcements/announcements.module";
 
 @Module({
   imports: [
@@ -63,12 +66,14 @@ import { DeliveryMatchModule } from "./modules/deliveries/delivery-match.module"
     DeliveryAgentsModule,
     ServiceAgentsModule,
     MerchantsModule,
-    ReviewsModule,
     PrestationsModule,
     AppointmentModule,
-    DeliveryRequestsModule,
-    TripModule,
-    DeliveryMatchModule,
+    DeliveriesModule,
+    StoragesModule,
+    RatingsModule,
+    NotificationsModule,
+    PaymentsModule,
+    AnnouncementsModule,
   ],
   controllers: [AppController],
   providers: [

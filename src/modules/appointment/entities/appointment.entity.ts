@@ -1,4 +1,5 @@
 import { Customer } from "src/modules/customers/entities/customer.entity";
+import { Rating } from "src/modules/ratings/entities/rating.entity";
 import { ServiceAgent } from "src/modules/service-agents/entities/service-agents.entity";
 import { AppointmentStatus } from "src/types/appointment";
 import {
@@ -7,9 +8,11 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
+import { Service } from "./service.entity";
 
 @Entity({ name: "appointments" })
 export class Appointment {
@@ -26,8 +29,18 @@ export class Appointment {
   @Column()
   date: Date;
 
-  @Column("decimal", { precision: 10, scale: 2 })
-  price: number;
+  @Column({ type: "decimal", precision: 8, scale: 2 })
+  final_price: number;
+
+  @Column({ type: "text", nullable: true })
+  special_requests: string;
+
+  @ManyToOne(() => Service, (service) => service.appointments)
+  @JoinColumn({ name: "service_id" })
+  service: Service;
+
+  @OneToMany(() => Rating, (rating) => rating.appointment)
+  ratings: Rating[];
 
   @JoinColumn({ name: "customer_id" })
   @ManyToOne(() => Customer, (customer) => customer.appointments, {

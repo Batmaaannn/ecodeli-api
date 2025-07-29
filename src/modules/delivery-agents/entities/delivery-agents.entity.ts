@@ -1,3 +1,5 @@
+import { Delivery } from "src/modules/deliveries/entities/delivery.entity";
+import { Route } from "src/modules/deliveries/entities/route.entity";
 import { User } from "src/modules/users/entities/user.entity";
 import { VehiculeType } from "src/types/vehicule";
 import {
@@ -10,7 +12,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
-import { Trip } from "../../trip/entities/trip.entity";
 
 @Entity({ name: "delivery_agents" })
 export class DeliveryAgent {
@@ -38,15 +39,6 @@ export class DeliveryAgent {
   @Column()
   phone_number: string;
 
-  @OneToOne(() => User, (user) => user.delivery_agent, { onDelete: "CASCADE" })
-  @JoinColumn({ name: "user_id" })
-  user?: User;
-  @Column({ nullable: true })
-  user_id?: number;
-
-  @OneToMany(() => Trip, (trip) => trip.delivery_agent)
-  trips: Trip[];
-
   @Column({ type: "enum", enum: VehiculeType, default: VehiculeType.VAN })
   vehicle_type: VehiculeType;
 
@@ -59,11 +51,17 @@ export class DeliveryAgent {
   @Column({ default: false })
   is_validated: boolean;
 
-  // @OneToMany(() => Delivery, (delivery) => delivery.deliverer)
-  // deliveries: Delivery[];
+  @OneToMany(() => Delivery, (delivery) => delivery.delivery_agent)
+  deliveries: Delivery[];
 
-  // @OneToMany(() => Route, (route) => route.deliverer)
-  // routes: Route[];
+  @OneToOne(() => User, (user) => user.delivery_agent, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "user_id" })
+  user?: User;
+  @Column({ nullable: true })
+  user_id?: number;
+
+  @OneToMany(() => Route, (route) => route.delivery_agent)
+  routes: Route[];
 
   @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
   created_at: Date;

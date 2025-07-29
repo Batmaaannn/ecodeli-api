@@ -1,14 +1,14 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { DeliveryRequest } from "./entities/delivery.entity";
 import { CreateDeliveryRequestDto } from "./dto/create-delivery-request.dto";
+import { Delivery } from "./entities/delivery.entity";
 
 @Injectable()
-export class DeliveryRequestsService {
+export class DeliveriesService {
   constructor(
-    @InjectRepository(DeliveryRequest)
-    private readonly deliveryRepo: Repository<DeliveryRequest>
+    @InjectRepository(Delivery)
+    private readonly deliveriesRepository: Repository<Delivery>
   ) {}
 
   async createWithFiles(
@@ -69,16 +69,16 @@ export class DeliveryRequestsService {
       objects: parsedObjects,
     };
 
-    const delivery = this.deliveryRepo.create({
-      ...finalDto,
-      customer: { id: customerId },
-      objects: finalDto.objects,
-    });
+    // const delivery = this.deliveriesRepository.create({
+    //   ...finalDto,
+    //   customer: { id: customerId },
+    //   objects: finalDto.objects,
+    // });
 
-    return this.deliveryRepo.save(delivery);
+    //return this.deliveriesRepository.save(delivery);
   }
 
   async findAll() {
-    return this.deliveryRepo.find({ relations: ["customer"] });
+    return this.deliveriesRepository.find({ relations: ["customer"] });
   }
 }

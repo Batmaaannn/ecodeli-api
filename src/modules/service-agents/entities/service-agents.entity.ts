@@ -1,5 +1,4 @@
 import { Appointment } from "src/modules/appointment/entities/appointment.entity";
-import { Review } from "src/modules/ratings/entities/ratings.entity";
 import { User } from "src/modules/users/entities/user.entity";
 import {
   Column,

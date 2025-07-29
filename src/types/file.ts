@@ -5,3 +5,12 @@ export enum FileTargetType {
   CUSTOMER = "customer",
   SERVICE_AGENT = "service_agent",
 }
+
+export enum DocumentType {
+  INVOICE = "invoice",
+  CONTRACT = "contract",
+  DELIVERY_PROOF = "delivery_proof",
+  IDENTITY = "identity",
+  LICENSE = "license",
+  INSURANCE = "insurance",
+}
