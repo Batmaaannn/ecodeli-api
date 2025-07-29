@@ -12,6 +12,16 @@ import { ServiceAgentsModule } from "./modules/service-agents/service-agents.mod
 import { MerchantsModule } from "./modules/merchants/merchants.module";
 import { PrestationsModule } from "./modules/prestations/prestations.module";
 import { ReviewsModule } from "./modules/reviews/reviews.module";
+import { AppointmentModule } from "./modules/appointment/appointment.module";
+import { APP_GUARD } from "@nestjs/core";
+import { RolesGuard } from "./modules/auth/guards/roles.guard";
+import { JwtAuthGuard } from "./modules/auth/guards/jwt-auth.guard";
+import {DeliveryRequestsModule} from "./modules/deliveries/delivery-requests.module";
+import {TripModule} from "./modules/trip/trip.modules";
+import { MailerModule } from "@nestjs-modules/mailer";
+import {HandlebarsAdapter} from "@nestjs-modules/mailer/dist/adapters/handlebars.adapter";
+import { ScheduleModule } from '@nestjs/schedule';
+import {DeliveryMatchModule} from "./modules/deliveries/delivery-match.module";
 
 @Module({
   imports: [
@@ -25,6 +35,27 @@ import { ReviewsModule } from "./modules/reviews/reviews.module";
       entities: [__dirname + "/**/*.entity{.ts,.js}"],
       synchronize: true,
     }),
+    MailerModule.forRoot({
+      transport: {
+        host: process.env.EMAIL_HOST,
+        port: 587,
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PWD,
+        },
+      },
+      defaults: {
+        from: '"App" <stainvy@gmail.com>',
+      },
+      template: {
+        dir: process.cwd() + '/src/utils/emails/templates/',
+        adapter: new HandlebarsAdapter(),
+        options: {
+          strict: true,
+        },
+      },
+    }),
+    ScheduleModule.forRoot(),
     UsersModule,
     AuthModule,
     RegistrationRequestsModule,
@@ -34,8 +65,22 @@ import { ReviewsModule } from "./modules/reviews/reviews.module";
     MerchantsModule,
     ReviewsModule,
     PrestationsModule,
+    AppointmentModule,
+    DeliveryRequestsModule,
+    TripModule,
+    DeliveryMatchModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+  ],
 })
 export class AppModule {}

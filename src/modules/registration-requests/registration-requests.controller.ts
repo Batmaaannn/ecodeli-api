@@ -1,9 +1,15 @@
 import {
   Body,
   Controller,
+  Get,
   HttpException,
   HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
   Post,
+  UploadedFiles,
+  UseInterceptors,
 } from "@nestjs/common";
 import { Public } from "../auth/decorator/public.decorator";
 import { CreateServiceAgentRequestDto } from "./dto/create-registration-service-agent.dto";
@@ -12,19 +18,42 @@ import { UsersService } from "../users/users.service";
 import { RegistrationRequestsService } from "./registration-requests.service";
 import { ApiTags } from "@nestjs/swagger";
 import { CreateDeliveryAgentRequestDto } from "./dto/create-registration-delivery-agent.dto";
+import { FilesInterceptor } from "@nestjs/platform-express";
+import { plainToInstance } from "class-transformer";
+import { validate } from "class-validator";
+import { Roles } from "../auth/decorator/roles.decorator";
+import { UserType } from "src/types/user";
+import { UpdateStatusRequestDto } from "./dto/update-status-registration.dto";
+import { ServiceAgentsService } from "../service-agents/service-agents.service";
 
 @ApiTags("registration-requests")
 @Controller("registration-requests")
 export class RegistrationRequestsController {
   constructor(
     private readonly registrationRequestsService: RegistrationRequestsService,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private serviceAgentsService: ServiceAgentsService
+    // private readonly usersService: UsersService
   ) {}
 
+  @Get()
+  @Roles(UserType.ADMIN)
+  async getAllRegistrationRequests() {
+    return this.registrationRequestsService.findAll();
+  }
+
+  @Get(":id")
+  @Roles(UserType.ADMIN)
+  async getRegistrationRequestById(@Param("id", ParseIntPipe) id: number) {
+    return this.registrationRequestsService.getRegistrationRequestById(id);
+  }
+
   @Public()
+  @UseInterceptors(FilesInterceptor("files"))
   @Post("service-agent")
   async createServiceAgent(
-    @Body() createServiceAgentRequestDto: CreateServiceAgentRequestDto
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body() createServiceAgentRequestDto: Record<string, any>
   ) {
     const { siret, email } = createServiceAgentRequestDto;
 
@@ -38,7 +67,7 @@ export class RegistrationRequestsController {
 
     const userRegistered = await this.usersService.findOneByEmail(email);
     if (userRegistered) {
-      throw new HttpException("Email exists", HttpStatus.CONFLICT);
+      throw new HttpException("User exists", HttpStatus.CONFLICT);
     }
 
     const emailExists =
@@ -47,17 +76,56 @@ export class RegistrationRequestsController {
       throw new HttpException("Email exists", HttpStatus.CONFLICT);
     }
 
-    return this.registrationRequestsService.createServiceAgentRequest(
+    if (files?.length > 0) {
+      files.map((file) => {
+        if (
+          !file.mimetype.match(
+            /jpg|jpeg|png|application\/octet-stream|application\/pdf/i
+          )
+        )
+          throw new HttpException(
+            "Can only process jpg, jpeg or pdf files",
+            HttpStatus.BAD_REQUEST
+          );
+      });
+    }
+
+    if (typeof createServiceAgentRequestDto.prestations === "string") {
+      try {
+        createServiceAgentRequestDto.prestations = JSON.parse(
+          createServiceAgentRequestDto.prestations
+        );
+      } catch (e) {
+        throw new HttpException(
+          "formated prestations field is not valid JSON",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+    }
+
+    const dto = plainToInstance(
+      CreateServiceAgentRequestDto,
       createServiceAgentRequestDto
     );
+    const errors = await validate(dto);
+    if (errors.length > 0) {
+      throw new HttpException(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    return this.registrationRequestsService.createServiceAgentRequest({
+      ...createServiceAgentRequestDto,
+      files,
+    });
   }
 
   @Public()
+  @UseInterceptors(FilesInterceptor("files"))
   @Post("delivery-agent")
   async createDeliveryAgent(
+    @UploadedFiles() files: Express.Multer.File[],
     @Body() createDeliveryAgentRequestDto: CreateDeliveryAgentRequestDto
   ) {
-    const { siret, email, driving_license } = createDeliveryAgentRequestDto;
+    const { siret, email } = createDeliveryAgentRequestDto;
 
     await isBlacklisted(email);
 
@@ -78,16 +146,77 @@ export class RegistrationRequestsController {
       throw new HttpException("Email exists", HttpStatus.CONFLICT);
     }
 
-    const drivingLicenceExists =
-      await this.registrationRequestsService.findOneByDrivingLicence(
-        driving_license
-      );
-    if (drivingLicenceExists) {
-      throw new HttpException("Driving licence exists", HttpStatus.CONFLICT);
+    if (files?.length > 0) {
+      files.map((file) => {
+        if (
+          !file.mimetype.match(
+            /jpg|jpeg|png|application\/octet-stream|application\/pdf/i
+          )
+        )
+          throw new HttpException(
+            "Can only process jpg, jpeg or pdf files",
+            HttpStatus.BAD_REQUEST
+          );
+      });
     }
 
-    return this.registrationRequestsService.createDeliveryAgentRequest(
-      createDeliveryAgentRequestDto
-    );
+    return this.registrationRequestsService.createDeliveryAgentRequest({
+      ...createDeliveryAgentRequestDto,
+      files,
+    });
+  }
+
+  // @Patch(":id/status")
+  // @Roles(UserType.ADMIN)
+  // async updateRegistrationRequestStatus(
+  //   @Param("id", ParseIntPipe) id: number,
+  //   @Body() updateStatusRequestDto: UpdateStatusRequestDto
+  // ) {
+  //   console.log("updateStatusRequestDto", updateStatusRequestDto);
+  //   return this.registrationRequestsService.updateRegistrationRequestStatus(
+  //     id,
+  //     updateStatusRequestDto
+  //   );
+  // }
+
+  @Post("validate/:id")
+  @Roles(UserType.ADMIN)
+  async validateAgent(@Param("id", ParseIntPipe) id: number) {
+    const registrationRequest =
+      await this.registrationRequestsService.findOneByIdWithRelations(id);
+
+    if (!registrationRequest) {
+      throw new HttpException(
+        `Registration request not found`,
+        HttpStatus.NOT_FOUND
+      );
+    }
+
+    const { email } = registrationRequest;
+
+    await isBlacklisted(email);
+
+    const existingEmail = await this.usersService.findOneByEmail(email);
+    if (existingEmail) {
+      throw new HttpException("Existing Email", HttpStatus.CONFLICT);
+    }
+
+    return this.registrationRequestsService.validateAgent(registrationRequest);
+  }
+
+  @Patch("reject/:id")
+  @Roles(UserType.ADMIN)
+  async updateFieldById(@Param("id", ParseIntPipe) id: number) {
+    console.log("id", id);
+    const registrationRequest =
+      await this.registrationRequestsService.findOneByIdWithRelations(id);
+
+    if (!registrationRequest) {
+      throw new HttpException(
+        `Registration request not found`,
+        HttpStatus.NOT_FOUND
+      );
+    }
+    return this.registrationRequestsService.rejectRegistrationRequest(id);
   }
 }

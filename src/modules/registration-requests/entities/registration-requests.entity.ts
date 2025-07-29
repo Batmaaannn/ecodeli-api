@@ -9,6 +9,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
+import { PrestationRegistrationRequest } from "./prestation-registration-request.entity";
+import { Statut } from "src/types/statut";
 
 @Entity({ name: "registration-requests" })
 export class RegistrationRequest {
@@ -49,22 +51,26 @@ export class RegistrationRequest {
   })
   agent_type: AgentType;
 
-  @OneToMany(() => Prestation, (prestation) => prestation.registrationRequest, { nullable: true })
-  prestations?: Prestation[];
-
-  @Column({ nullable: true, unique: true })
-  driving_license?: string;
+  @OneToMany(
+    () => PrestationRegistrationRequest,
+    (link) => link.registrationRequest,
+    { cascade: true }
+  )
+  prestationLinks?: PrestationRegistrationRequest[];
 
   @Column({
     type: "enum",
     enum: VehiculeType,
-    default: VehiculeType.VAN,
     nullable: true,
   })
   vehicle_type?: VehiculeType;
 
-  @Column({ default: false })
-  is_processed: boolean;
+  @Column({
+    type: "enum",
+    enum: Statut,
+    default: Statut.PENDING,
+  })
+  statut: Statut;
 
   @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
   created_at: Date;

@@ -1,7 +1,12 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsEmail, Length } from "class-validator";
-import { Prestation } from "src/modules/prestations/entities/prestations.entity";
-
+import { Type } from "class-transformer";
+import {
+  IsNotEmpty,
+  IsEmail,
+  Length,
+  IsArray,
+  ValidateNested,
+} from "class-validator";
 export class CreateServiceAgentRequestDto {
   @ApiProperty()
   @IsNotEmpty()
@@ -10,15 +15,15 @@ export class CreateServiceAgentRequestDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  company_name: string;
+  companyName: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  company_address: string;
+  companyAddress: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  company_city: string;
+  companyCity: string;
 
   @ApiProperty()
   @IsEmail()
@@ -27,17 +32,34 @@ export class CreateServiceAgentRequestDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  first_name: string;
+  firstName: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  last_name: string;
+  lastName: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  phone_number: string;
+  phoneNumber: string;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PrestationsRequestDto)
+  prestations: PrestationsRequestDto[];
+
+  @ApiProperty()
+  files: Express.Multer.File[];
+
+  @ApiProperty()
+  fileName: string;
+}
+
+export class PrestationsRequestDto {
+  @ApiProperty()
+  @IsNotEmpty()
+  prestationId: number;
 
   @ApiProperty()
   @IsNotEmpty()
-  prestations: Prestation[];
+  price: number;
 }

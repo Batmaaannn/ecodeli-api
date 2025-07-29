@@ -12,7 +12,9 @@ import { LocalAuthGuard } from "./guards/local-auth.guard";
 import { Public } from "./decorator/public.decorator";
 import { UsersService } from "../users/users.service";
 import { LoginUserDto } from "./dto/login-user.dto";
+import { ApiTags } from "@nestjs/swagger";
 
+@ApiTags("auth")
 @Controller("auth")
 export class AuthController {
   constructor(

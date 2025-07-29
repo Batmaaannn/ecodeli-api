@@ -1,3 +1,4 @@
+import { Appointment } from "src/modules/appointment/entities/appointment.entity";
 import { Review } from "src/modules/reviews/entities/reviews.entity";
 import { User } from "src/modules/users/entities/user.entity";
 import {
@@ -8,6 +9,7 @@ import {
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
+  RelationId,
   UpdateDateColumn,
 } from "typeorm";
 
@@ -22,8 +24,8 @@ export class Customer {
   @Column()
   first_name: string;
 
-  @Column({ nullable: true })
-  phone_number?: string;
+  @Column()
+  phone_number: string;
 
   @Column({ nullable: true })
   address_1?: string;
@@ -42,6 +44,13 @@ export class Customer {
   user?: User;
   @Column({ nullable: true })
   user_id?: number;
+
+  @OneToMany(() => Appointment, (appointment) => appointment.customer, {
+    nullable: true,
+  })
+  appointments: Appointment[];
+  @RelationId((customer: Customer) => customer.appointments)
+  appointment_ids?: number[];
 
   @OneToMany(() => Review, (review) => review.customer)
   reviews: Review[];

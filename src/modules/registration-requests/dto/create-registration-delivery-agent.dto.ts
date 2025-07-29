@@ -10,15 +10,15 @@ export class CreateDeliveryAgentRequestDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  company_name: string;
+  companyName: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  company_address: string;
+  companyAddress: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  company_city: string;
+  companyCity: string;
 
   @ApiProperty()
   @IsEmail()
@@ -27,23 +27,21 @@ export class CreateDeliveryAgentRequestDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  first_name: string;
+  firstName: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  last_name: string;
+  lastName: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  phone_number: string;
-
-  @ApiProperty()
-  @IsNotEmpty()
-  @Length(1, 15, { message: "Driving license length must be between 1 and 15" })
-  driving_license?: string;
+  phoneNumber: string;
 
   @ApiProperty()
   @IsNotEmpty()
   @IsEnum(VehiculeType)
-  vehicle_type: VehiculeType;
+  vehiculeType: VehiculeType;
+
+  @ApiProperty()
+  files: Express.Multer.File[];
 }

@@ -5,36 +5,39 @@ import { UsersService } from "../users/users.service";
 import { Repository } from "typeorm";
 import { CreateUserMerchantDto } from "./dto/create-user-merchant.dto";
 import { UserType } from "src/types/user";
+import { FilesService } from "../files/files.service";
 
 @Injectable()
 export class MerchantsService {
   constructor(
     @InjectRepository(Merchant)
     private readonly merchantsRepository: Repository<Merchant>,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private readonly filesService: FilesService
   ) {}
 
   async createMerchant(createUserDto: CreateUserMerchantDto) {
     const {
-      first_name,
-      last_name,
+      firstName,
+      lastName,
       email,
       password,
-      phone_number,
+      phoneNumber,
       siret,
-      company_address,
-      company_name,
-      company_city,
+      companyAddress,
+      companyName,
+      companyCity,
+      files,
     } = createUserDto;
 
     const createdMerchant = await this.insertOne({
-      first_name,
-      last_name,
-      phone_number,
+      first_name: firstName,
+      last_name: lastName,
+      phone_number: phoneNumber,
       siret,
-      company_address,
-      company_name,
-      company_city,
+      company_address: companyAddress,
+      company_name: companyName,
+      company_city: companyCity,
     });
 
     const insertedUser = await this.usersService.insertOneMerchant(
@@ -49,6 +52,13 @@ export class MerchantsService {
     await this.updateOneById(insertedUser.merchant_id, {
       user_id: insertedUser.id,
     });
+
+    if (files?.length > 0) {
+      await this.filesService.createMerchantFile({
+        files,
+        merchantId: createdMerchant.id,
+      });
+    }
   }
 
   /* Db Requests */

@@ -5,10 +5,11 @@ FROM node:20-slim
 WORKDIR /usr/src/app
 
 # Installer les dépendances nécessaires (procps pour `ps`, etc.)
+
 RUN apt-get update \
  && apt-get install -y --no-install-recommends procps \
  && rm -rf /var/lib/apt/lists/*
-
+ 
 # Copier uniquement les fichiers de dépendances pour installer plus vite
 COPY package*.json ./
 

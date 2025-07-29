@@ -5,10 +5,12 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
+import { Trip } from "../../trip/entities/trip.entity";
 
 @Entity({ name: "delivery_agents" })
 export class DeliveryAgent {
@@ -42,8 +44,8 @@ export class DeliveryAgent {
   @Column({ nullable: true })
   user_id?: number;
 
-  @Column({ unique: true })
-  driving_license: string;
+  @OneToMany(() => Trip, (trip) => trip.delivery_agent)
+  trips: Trip[];
 
   @Column({ type: "enum", enum: VehiculeType, default: VehiculeType.VAN })
   vehicle_type: VehiculeType;

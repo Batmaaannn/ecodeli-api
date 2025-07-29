@@ -9,15 +9,15 @@ export class CreateUserMerchantDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  company_name: string;
+  companyName: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  company_address: string;
+  companyAddress: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  company_city: string;
+  companyCity: string;
 
   @ApiProperty()
   @IsEmail()
@@ -26,11 +26,11 @@ export class CreateUserMerchantDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  first_name: string;
+  firstName: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  last_name: string;
+  lastName: string;
 
   @ApiProperty()
   @IsNotEmpty()
@@ -38,5 +38,8 @@ export class CreateUserMerchantDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  phone_number: string;
+  phoneNumber: string;
+
+  @ApiProperty()
+  files: Express.Multer.File[];
 }
