@@ -172,29 +172,30 @@ erDiagram
 
     %% Entités Système
     PAYMENTS {
-        int payment_id PK
+        int id PK
         int user_id FK
         decimal amount
         enum payment_type "delivery|service|subscription"
         enum status "pending|completed|failed|refunded"
         string stripe_payment_id
         datetime transaction_date
-        int related_id "delivery_id or booking_id"
+        int related_id "delivery_id or appointment_id"
     }
 
     RATINGS {
-        int rating_id PK
+        int id PK
         int rater_id FK
         int rated_id FK
-        int related_id FK "delivery_id or booking_id"
+        int delivery_id FK
+        int appointment_id FK
         int rating_value "1-5"
         text comment
-        datetime rating_date
-        enum rating_type "delivery|service"
+        datetime created_at
+        datetime updated_at
     }
 
     NOTIFICATIONS {
-        int notification_id PK
+        int id PK
         int user_id FK
         string title
         text content
@@ -205,27 +206,27 @@ erDiagram
     }
 
     STORAGE_BOXES {
-        int box_id PK
+        int id PK
+        int customer_id FK
         string box_location "paris|marseille|lyon|lille|montpellier|rennes"
         enum box_size "small|medium|large|xl"
         boolean is_occupied
         datetime rental_start
         datetime rental_end
-        int client_id FK
     }
 
     DOCUMENTS {
-        int document_id PK
+        int id PK
         int user_id FK
-        string document_type "invoice|contract|delivery_proof|identity"
+        enum document_type "invoice|contract|delivery_proof|identity"
         string file_path
         datetime generated_at
         boolean is_archived
     }
 
     ROUTES {
-        int route_id PK
-        int deliverer_id FK
+        int id PK
+        int delivery_agent_id FK
         string departure_city
         string arrival_city
         datetime departure_date
@@ -234,31 +235,60 @@ erDiagram
         int max_packages
     }
 
+    %% Entités Additionnelles
+    REGISTRATION_REQUESTS {
+        int id PK
+        int user_id FK
+        enum registration_type "delivery_agent|service_agent"
+        enum status "pending|approved|rejected"
+        text admin_comment
+        datetime validated_at
+        int validated_by
+        datetime created_at
+        datetime updated_at
+    }
+
+    FILES {
+        int id PK
+        int user_id FK
+        int registration_request_id FK
+        string filename
+        string path
+        string mimetype
+        int size
+        enum type "identity|license|insurance|vehicle|siret|other"
+        datetime created_at
+    }
+
     %% Relations
-    USERS ||--o{ DELIVERERS : "is_a"
-    USERS ||--o{ CLIENTS : "is_a"
+    USERS ||--o{ DELIVERY_AGENTS : "is_a"
+    USERS ||--o{ CUSTOMERS : "is_a"
     USERS ||--o{ MERCHANTS : "is_a"
-    USERS ||--o{ SERVICE_PROVIDERS : "is_a"
+    USERS ||--o{ SERVICE_AGENTS : "is_a"
     
-    CLIENTS ||--o{ ANNOUNCEMENTS : "posts"
-    CLIENTS ||--o{ BOOKINGS : "makes"
-    CLIENTS ||--o{ STORAGE_BOXES : "rents"
+    CUSTOMERS ||--o{ ANNOUNCEMENTS : "posts"
+    CUSTOMERS ||--o{ APPOINTMENTS : "books"
+    CUSTOMERS ||--o{ STORAGE_BOXES : "rents"
     
     ANNOUNCEMENTS ||--o{ DELIVERIES : "generates"
-    DELIVERERS ||--o{ DELIVERIES : "performs"
-    DELIVERERS ||--o{ ROUTES : "plans"
+    DELIVERY_AGENTS ||--o{ DELIVERIES : "performs"
+    DELIVERY_AGENTS ||--o{ ROUTES : "plans"
     
     DELIVERIES ||--o{ PACKAGES : "contains"
     STORAGE_BOXES ||--o{ PACKAGES : "stores"
     
-    SERVICE_PROVIDERS ||--o{ BOOKINGS : "fulfills"
-    SERVICES ||--o{ BOOKINGS : "booked_as"
+    SERVICE_AGENTS ||--o{ SERVICE_AGENT_PRESTATIONS : "offers"
+    PRESTATIONS ||--o{ SERVICE_AGENT_PRESTATIONS : "priced_by"
+    SERVICE_AGENT_PRESTATIONS ||--o{ APPOINTMENTS : "fulfills"
     
     USERS ||--o{ PAYMENTS : "makes"
     USERS ||--o{ RATINGS : "gives"
     USERS ||--o{ RATINGS : "receives"
     USERS ||--o{ NOTIFICATIONS : "receives"
     USERS ||--o{ DOCUMENTS : "owns"
+    USERS ||--o{ REGISTRATION_REQUESTS : "submits"
+    
+    REGISTRATION_REQUESTS ||--o{ FILES : "contains"
     
     DELIVERIES ||--o{ RATINGS : "rated_for"
-    BOOKINGS ||--o{ RATINGS : "rated_for"
+    APPOINTMENTS ||--o{ RATINGS : "rated_for"
