@@ -50,6 +50,21 @@ export class DeliveryAgent {
   @Column({ type: "enum", enum: VehiculeType, default: VehiculeType.VAN })
   vehicle_type: VehiculeType;
 
+  @Column({ nullable: true })
+  license_number: string;
+
+  @Column({ type: "decimal", precision: 3, scale: 2, default: 0 })
+  rating: number;
+
+  @Column({ default: false })
+  is_validated: boolean;
+
+  // @OneToMany(() => Delivery, (delivery) => delivery.deliverer)
+  // deliveries: Delivery[];
+
+  // @OneToMany(() => Route, (route) => route.deliverer)
+  // routes: Route[];
+
   @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
   created_at: Date;
 

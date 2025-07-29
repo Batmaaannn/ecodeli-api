@@ -5,24 +5,24 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Review } from "./entities/reviews.entity";
 import { Repository } from "typeorm";
-import { CreateReviewDto } from "./dto/create-review.dto";
 import { CustomersService } from "../customers/customers.service";
 import { ServiceAgentsService } from "../service-agents/service-agents.service";
+import { Rating } from "./entities/ratings.entity";
+import { CreateRatingDto } from "./dto/create-rating.dto";
 
 @Injectable()
-export class ReviewsService {
+export class RatingsService {
   constructor(
-    @InjectRepository(Review)
-    private readonly reviewRepository: Repository<Review>,
+    @InjectRepository(Rating)
+    private readonly ratingRepository: Repository<Rating>,
     private readonly customersService: CustomersService,
     private readonly serviceAgentsService: ServiceAgentsService
   ) {}
 
-  async create(createReviewDto: CreateReviewDto) {
+  async create(createRatingDto: CreateRatingDto) {
     const { customerId, serviceAgentId, rating, comment, date } =
-      createReviewDto;
+      createRatingDto;
 
     const customer = await this.customersService.findOne(customerId);
     if (!customer) {
@@ -35,7 +35,7 @@ export class ReviewsService {
       throw new HttpException("Service agent not found", HttpStatus.NOT_FOUND);
     }
 
-    const review = this.reviewRepository.create({
+    const rated = this.ratingRepository.create({
       customer,
       serviceAgent,
       rating,
@@ -43,13 +43,13 @@ export class ReviewsService {
       date,
     });
 
-    return this.reviewRepository.save(review);
+    return this.ratingRepository.save(rated);
   }
 
   /* Db Requests */
 
-  async findByServiceAgent(serviceAgentId: number): Promise<Review[]> {
-    return this.reviewRepository.find({
+  async findByServiceAgent(serviceAgentId: number): Promise<Rating[]> {
+    return this.ratingRepository.find({
       where: { service_agent_id: serviceAgentId },
       relations: ["customer"],
       order: { date: "DESC" },

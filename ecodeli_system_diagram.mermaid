@@ -1,0 +1,206 @@
+erDiagram
+    %% Entités Utilisateurs
+    USERS {
+        int user_id PK
+        string email
+        string password_hash
+        enum user_type "deliverer|client|merchant|provider|admin"
+        datetime created_at
+        boolean is_validated
+        boolean is_active
+    }
+
+    DELIVERERS {
+        int deliverer_id PK
+        int user_id FK
+        string license_number
+        string vehicle_type
+        blob documents
+        decimal rating
+        boolean is_validated
+        string nfc_card_id
+    }
+
+    CLIENTS {
+        int client_id PK
+        int user_id FK
+        string subscription_plan "free|starter|premium"
+        decimal wallet_balance
+        datetime subscription_start
+        boolean tutorial_completed
+    }
+
+    MERCHANTS {
+        int merchant_id PK
+        int user_id FK
+        string company_name
+        string siret
+        blob contract_document
+        decimal commission_rate
+        boolean is_partner
+    }
+
+    SERVICE_PROVIDERS {
+        int provider_id PK
+        int user_id FK
+        string certifications
+        json available_services
+        decimal hourly_rate
+        decimal monthly_earnings
+        datetime last_invoice_date
+    }
+
+    %% Entités Métier - Livraisons
+    ANNOUNCEMENTS {
+        int announcement_id PK
+        int client_id FK
+        string title
+        text description
+        string departure_city
+        string arrival_city
+        decimal price
+        datetime pickup_date
+        datetime delivery_date
+        enum status "posted|matched|in_progress|delivered|cancelled"
+        enum announcement_type "package|service|transport"
+    }
+
+    DELIVERIES {
+        int delivery_id PK
+        int announcement_id FK
+        int deliverer_id FK
+        enum delivery_type "full|partial"
+        string tracking_code
+        decimal package_weight
+        string package_dimensions
+        enum status "assigned|picked_up|in_transit|delivered"
+        datetime pickup_time
+        datetime delivery_time
+        string delivery_code
+    }
+
+    PACKAGES {
+        int package_id PK
+        int delivery_id FK
+        string package_type
+        decimal declared_value
+        boolean insurance_required
+        blob photos
+        string special_instructions
+        int storage_box_id FK
+    }
+
+    %% Entités Métier - Services
+    SERVICES {
+        int service_id PK
+        string service_name
+        string service_category "transport_person|airport_transfer|shopping|pet_care|maintenance"
+        text description
+        decimal base_price
+        int duration_minutes
+    }
+
+    BOOKINGS {
+        int booking_id PK
+        int client_id FK
+        int provider_id FK
+        int service_id FK
+        datetime booking_date
+        datetime service_date
+        enum status "requested|confirmed|in_progress|completed|cancelled"
+        decimal final_price
+        text special_requests
+    }
+
+    %% Entités Système
+    PAYMENTS {
+        int payment_id PK
+        int user_id FK
+        decimal amount
+        enum payment_type "delivery|service|subscription"
+        enum status "pending|completed|failed|refunded"
+        string stripe_payment_id
+        datetime transaction_date
+        int related_id "delivery_id or booking_id"
+    }
+
+    RATINGS {
+        int rating_id PK
+        int rater_id FK
+        int rated_id FK
+        int related_id FK "delivery_id or booking_id"
+        int rating_value "1-5"
+        text comment
+        datetime rating_date
+        enum rating_type "delivery|service"
+    }
+
+    NOTIFICATIONS {
+        int notification_id PK
+        int user_id FK
+        string title
+        text content
+        enum notification_type "delivery_match|payment|booking|system"
+        boolean is_read
+        datetime created_at
+        string onesignal_id
+    }
+
+    STORAGE_BOXES {
+        int box_id PK
+        string box_location "paris|marseille|lyon|lille|montpellier|rennes"
+        enum box_size "small|medium|large|xl"
+        boolean is_occupied
+        datetime rental_start
+        datetime rental_end
+        int client_id FK
+    }
+
+    DOCUMENTS {
+        int document_id PK
+        int user_id FK
+        string document_type "invoice|contract|delivery_proof|identity"
+        string file_path
+        datetime generated_at
+        boolean is_archived
+    }
+
+    ROUTES {
+        int route_id PK
+        int deliverer_id FK
+        string departure_city
+        string arrival_city
+        datetime departure_date
+        datetime arrival_date
+        boolean is_available
+        int max_packages
+    }
+
+    %% Relations
+    USERS ||--o{ DELIVERERS : "is_a"
+    USERS ||--o{ CLIENTS : "is_a"
+    USERS ||--o{ MERCHANTS : "is_a"
+    USERS ||--o{ SERVICE_PROVIDERS : "is_a"
+    
+    CLIENTS ||--o{ ANNOUNCEMENTS : "posts"
+    CLIENTS ||--o{ BOOKINGS : "makes"
+    CLIENTS ||--o{ STORAGE_BOXES : "rents"
+    
+    ANNOUNCEMENTS ||--o{ DELIVERIES : "generates"
+    DELIVERERS ||--o{ DELIVERIES : "performs"
+    DELIVERERS ||--o{ ROUTES : "plans"
+    
+    DELIVERIES ||--o{ PACKAGES : "contains"
+    STORAGE_BOXES ||--o{ PACKAGES : "stores"
+    
+    SERVICE_PROVIDERS ||--o{ BOOKINGS : "fulfills"
+    SERVICES ||--o{ BOOKINGS : "booked_as"
+    
+    USERS ||--o{ PAYMENTS : "makes"
+    USERS ||--o{ RATINGS : "gives"
+    USERS ||--o{ RATINGS : "receives"
+    USERS ||--o{ NOTIFICATIONS : "receives"
+    USERS ||--o{ DOCUMENTS : "owns"
+    
+    DELIVERIES ||--o{ RATINGS : "rated_for"
+    BOOKINGS ||--o{ RATINGS : "rated_for"

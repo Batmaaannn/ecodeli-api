@@ -1,5 +1,5 @@
 import { Appointment } from "src/modules/appointment/entities/appointment.entity";
-import { Review } from "src/modules/reviews/entities/reviews.entity";
+import { Rating } from "src/modules/ratings/entities/ratings.entity";
 import { User } from "src/modules/users/entities/user.entity";
 import {
   Column,
@@ -39,6 +39,20 @@ export class Customer {
   @Column({ nullable: true })
   city?: string;
 
+  @Column({
+    type: "enum",
+    enum: SubscriptionPlan,
+    default: SubscriptionPlan.FREE,
+  })
+  @Column({ type: "decimal", precision: 10, scale: 2, default: 0 })
+  wallet_balance: number;
+
+  @Column({ nullable: true })
+  subscription_start: Date;
+
+  @Column({ default: false })
+  tutorial_completed: boolean;
+
   @OneToOne(() => User, (user) => user.customer, { onDelete: "CASCADE" })
   @JoinColumn({ name: "user_id" })
   user?: User;
@@ -49,11 +63,18 @@ export class Customer {
     nullable: true,
   })
   appointments: Appointment[];
-  @RelationId((customer: Customer) => customer.appointments)
-  appointment_ids?: number[];
 
-  @OneToMany(() => Review, (review) => review.customer)
-  reviews: Review[];
+  @OneToMany(() => Rating, (rating) => rating.rater)
+  ratingsGiven: Rating[];
+
+  @OneToMany(() => Rating, (rating) => rating.rated)
+  ratingsReceived: Rating[];
+
+  @OneToMany(() => Announcement, (announcement) => announcement.customer)
+  announcements: Announcement[];
+
+  @OneToMany(() => StorageBox, (storageBox) => storageBox.customer)
+  storageBoxes: StorageBox[];
 
   @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
   created_at: Date;

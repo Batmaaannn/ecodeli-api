@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   RelationId,
@@ -13,6 +14,7 @@ import { Customer } from "src/modules/customers/entities/customer.entity";
 import { DeliveryAgent } from "src/modules/delivery-agents/entities/delivery-agents.entity";
 import { ServiceAgent } from "src/modules/service-agents/entities/service-agents.entity";
 import { Merchant } from "src/modules/merchants/entities/merchants.entity";
+import { Rating } from "src/modules/ratings/entities/ratings.entity";
 
 @Entity({ name: "users" })
 export class User {
@@ -56,6 +58,21 @@ export class User {
   merchant?: Merchant;
   @RelationId((user: User) => user.merchant)
   merchant_id?: number;
+
+  // @OneToMany(() => Payment, (payment) => payment.user)
+  // payments: Payment[];
+
+  // @OneToMany(() => Notification, (notification) => notification.user)
+  // notifications: Notification[];
+
+  // @OneToMany(() => Document, (document) => document.user)
+  // documents: Document[];
+
+  @OneToMany(() => Rating, (rating) => rating.rater)
+  ratingsGiven: Rating[];
+
+  @OneToMany(() => Rating, (rating) => rating.rated)
+  ratingsReceived: Rating[];
 
   @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
   created_at: Date;

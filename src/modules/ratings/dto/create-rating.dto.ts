@@ -7,7 +7,7 @@ import {
   Min,
   Max,
 } from "class-validator";
-export class CreateReviewDto {
+export class CreateRatingDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsNumber()

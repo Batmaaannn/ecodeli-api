@@ -10,30 +10,31 @@ import {
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { UsersService } from "../users/users.service";
-import { CreateReviewDto } from "./dto/create-review.dto";
-import { ReviewsService } from "./reviews.service";
+
 import { Roles } from "../auth/decorator/roles.decorator";
 import { UserType } from "src/types/user";
+import { RatingsService } from "./ratings.service";
+import { CreateRatingDto } from "./dto/create-rating.dto";
 
 @ApiBearerAuth()
-@ApiTags("reviews")
-@Controller("reviews")
-export class ReviewsController {
+@ApiTags("ratings")
+@Controller("ratings")
+export class RatingsController {
   constructor(
-    private readonly reviewsService: ReviewsService,
+    private readonly ratingsService: RatingsService,
     private readonly usersService: UsersService
   ) {}
 
   @Get("/service-agent/:id")
-  async getReviewsByServiceAgent(@Param("id") serviceAgentId: number) {
-    return this.reviewsService.findByServiceAgent(serviceAgentId);
+  async getRatingsByServiceAgent(@Param("id") serviceAgentId: number) {
+    return this.ratingsService.findByServiceAgent(serviceAgentId);
   }
 
   @Roles(UserType.CUSTOMER)
   @Post()
-  async createReview(@Request() req, @Body() createReviewDto: CreateReviewDto) {
+  async createRating(@Request() req, @Body() createRatingDto: CreateRatingDto) {
     const { userId } = req.user;
-    const { appointmentId } = createReviewDto;
+    const { appointmentId } = createRatingDto;
 
     const user = await this.usersService.getUser(userId);
 
@@ -53,6 +54,6 @@ export class ReviewsController {
     //     HttpStatus.UNAUTHORIZED
     //   );
 
-    return this.reviewsService.create(createReviewDto);
+    return this.ratingsService.create(createRatingDto);
   }
 }

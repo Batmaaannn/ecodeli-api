@@ -1,4 +1,5 @@
-import { Review } from "src/modules/reviews/entities/reviews.entity";
+import { Appointment } from "src/modules/appointment/entities/appointment.entity";
+import { Review } from "src/modules/ratings/entities/ratings.entity";
 import { User } from "src/modules/users/entities/user.entity";
 import {
   Column,
@@ -40,14 +41,26 @@ export class ServiceAgent {
   @Column({ nullable: true })
   address?: string;
 
+  @Column({ type: "text", nullable: true })
+  certifications: string;
+
+  @Column({ type: "decimal", precision: 8, scale: 2, default: 0 })
+  hourly_rate: number;
+
+  @Column({ type: "decimal", precision: 10, scale: 2, default: 0 })
+  monthly_earnings: number;
+
+  @Column({ nullable: true })
+  last_invoice_date: Date;
+
   @OneToOne(() => User, (user) => user.service_agent, { onDelete: "CASCADE" })
   @JoinColumn({ name: "user_id" })
   user?: User;
   @Column({ nullable: true })
   user_id?: number;
 
-  @OneToMany(() => Review, (review) => review.serviceAgent)
-  reviews: Review[];
+  @OneToMany(() => Appointment, (appointment) => appointment.service_agent)
+  appointments: Appointment[];
 
   @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
   created_at: Date;

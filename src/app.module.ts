@@ -11,17 +11,17 @@ import { DeliveryAgentsModule } from "./modules/delivery-agents/delivery-agents.
 import { ServiceAgentsModule } from "./modules/service-agents/service-agents.module";
 import { MerchantsModule } from "./modules/merchants/merchants.module";
 import { PrestationsModule } from "./modules/prestations/prestations.module";
-import { ReviewsModule } from "./modules/reviews/reviews.module";
+import { ReviewsModule } from "./modules/ratings/ratings.module";
 import { AppointmentModule } from "./modules/appointment/appointment.module";
 import { APP_GUARD } from "@nestjs/core";
 import { RolesGuard } from "./modules/auth/guards/roles.guard";
 import { JwtAuthGuard } from "./modules/auth/guards/jwt-auth.guard";
-import {DeliveryRequestsModule} from "./modules/deliveries/delivery-requests.module";
-import {TripModule} from "./modules/trip/trip.modules";
+import { DeliveryRequestsModule } from "./modules/deliveries/delivery-requests.module";
+import { TripModule } from "./modules/trip/trip.modules";
 import { MailerModule } from "@nestjs-modules/mailer";
-import {HandlebarsAdapter} from "@nestjs-modules/mailer/dist/adapters/handlebars.adapter";
-import { ScheduleModule } from '@nestjs/schedule';
-import {DeliveryMatchModule} from "./modules/deliveries/delivery-match.module";
+import { HandlebarsAdapter } from "@nestjs-modules/mailer/dist/adapters/handlebars.adapter";
+import { ScheduleModule } from "@nestjs/schedule";
+import { DeliveryMatchModule } from "./modules/deliveries/delivery-match.module";
 
 @Module({
   imports: [
@@ -48,7 +48,7 @@ import {DeliveryMatchModule} from "./modules/deliveries/delivery-match.module";
         from: '"App" <stainvy@gmail.com>',
       },
       template: {
-        dir: process.cwd() + '/src/utils/emails/templates/',
+        dir: process.cwd() + "/src/utils/emails/templates/",
         adapter: new HandlebarsAdapter(),
         options: {
           strict: true,
@@ -68,7 +68,7 @@ import {DeliveryMatchModule} from "./modules/deliveries/delivery-match.module";
     AppointmentModule,
     DeliveryRequestsModule,
     TripModule,
-    DeliveryMatchModule
+    DeliveryMatchModule,
   ],
   controllers: [AppController],
   providers: [

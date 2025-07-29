@@ -35,13 +35,17 @@ export class Merchant {
   @Column()
   phone_number: string;
 
+  @Column({ type: "decimal", precision: 5, scale: 2, default: 0 })
+  commission_rate: number;
+
+  @Column({ default: false })
+  is_partner: boolean;
+
   @OneToOne(() => User, (user) => user.merchant, { onDelete: "CASCADE" })
   @JoinColumn({ name: "user_id" })
   user?: User;
   @Column({ nullable: true })
   user_id?: number;
-
-  //Contract
 
   @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
   created_at: Date;
