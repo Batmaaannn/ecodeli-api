@@ -45,13 +45,17 @@ export class UsersService {
   }
 
   async insertOneCustomer(
-    customerToCreate: Pick<CustomerUser, "email" | "password" | "user_type">,
+    customerToCreate: Pick<
+      CustomerUser,
+      "email" | "password" | "user_type" | "is_validated"
+    >,
     customer: Customer
   ): Promise<User> {
     const user = this.usersRepository.create({
       ...customerToCreate,
       email: customerToCreate.email.toLowerCase(),
       customer,
+      is_validated: customerToCreate.is_validated,
     });
 
     return this.usersRepository.save(user);

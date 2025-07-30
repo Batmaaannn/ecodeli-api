@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsEmail, IsNotEmpty } from "class-validator";
+import { SubscriptionPlan } from "src/types/subscription-plan";
 
 export class CreateUserCustomerDto {
   @ApiProperty()
@@ -22,4 +23,8 @@ export class CreateUserCustomerDto {
   @ApiProperty()
   @IsNotEmpty()
   password: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  subscriptionPlan?: SubscriptionPlan;
 }

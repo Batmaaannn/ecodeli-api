@@ -75,7 +75,6 @@ import { DocumentsModule } from "./modules/documents/documents.module";
     PaymentsModule,
     AnnouncementsModule,
     DocumentsModule,
-    
   ],
   controllers: [AppController],
   providers: [

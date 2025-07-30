@@ -9,22 +9,14 @@ import {
   HttpStatus,
 } from "@nestjs/common";
 import { DeliveriesService } from "./deliveries.service";
+import { FilesInterceptor } from "@nestjs/platform-express";
 
 @Controller("deliveries")
 export class DeliveriesController {
   constructor(private readonly deliveriesService: DeliveriesService) {}
 
   @Post("with-upload")
-  @UseInterceptors()
-  // FilesInterceptor("photos", 10, {
-  //   storage: diskStorage({
-  //     destination: "./uploads/delivery-objects",
-  //     filename: (req, file, callback) => {
-  //       const uniqueSuffix = uuid() + extname(file.originalname);
-  //       callback(null, `${uniqueSuffix}`);
-  //     },
-  //   }),
-  // })
+  @UseInterceptors(FilesInterceptor("files"))
   async createDeliveryWithImages(
     @Request() req,
     @UploadedFiles() files: Express.Multer.File[],
