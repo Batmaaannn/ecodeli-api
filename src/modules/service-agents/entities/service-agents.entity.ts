@@ -39,9 +39,6 @@ export class ServiceAgent {
   phone_number: string;
 
   @Column({ nullable: true })
-  address?: string;
-
-  @Column({ type: "text", nullable: true })
   certifications: string;
 
   @Column({ type: "decimal", precision: 10, scale: 2, default: 0 })

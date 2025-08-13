@@ -46,6 +46,7 @@
     "fast-csv": "^5.0.2",
     "handlebars": "^4.7.8",
     "lodash": "^4.17.21",
+    "nestjs-form-data": "^1.9.92",
     "node-mailjet": "^6.0.8",
     "nodemailer": "^7.0.5",
     "passport": "^0.7.0",

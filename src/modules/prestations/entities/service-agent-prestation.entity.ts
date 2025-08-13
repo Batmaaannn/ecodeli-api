@@ -10,7 +10,6 @@ import {
 } from "typeorm";
 import { Prestation } from "./prestations.entity";
 import { ServiceAgent } from "src/modules/service-agents/entities/service-agents.entity";
-import { Status } from "src/types/status";
 import { PrestationStatus } from "src/types/prestation";
 import { Appointment } from "src/modules/appointment/entities/appointment.entity";
 
@@ -25,7 +24,6 @@ export class ServiceAgentPrestation {
   @Column({ type: "decimal", precision: 8, scale: 2, nullable: true })
   applied_price: number;
 
-  // 📋 Statut de validation du prix par EcoDeli
   @Column({
     type: "enum",
     enum: PrestationStatus,

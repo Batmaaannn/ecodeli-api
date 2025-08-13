@@ -58,8 +58,9 @@ export class MerchantsService {
     if (files?.length > 0) {
       await this.filesService.createFile({
         files,
-        id: createdMerchant.id,
+        targetId: createdMerchant.id,
         targetType: FileTargetType.MERCHANT,
+        userId: insertedUser.id,
       });
     }
   }

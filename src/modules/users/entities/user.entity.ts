@@ -17,7 +17,7 @@ import { Merchant } from "src/modules/merchants/entities/merchants.entity";
 import { Rating } from "src/modules/ratings/entities/rating.entity";
 import { Payment } from "src/modules/payments/entities/payment.entity";
 import { Notification } from "src/modules/notifications/entities/notification.entity";
-import { Document } from "src/modules/documents/entities/document.entity";
+import { File } from "src/modules/files/entities/file.entity";
 
 
 @Entity({ name: "users" })
@@ -75,8 +75,8 @@ export class User {
   @OneToMany(() => Notification, (notification) => notification.user)
   notifications: Notification[];
 
-  @OneToMany(() => Document, (document) => document.user)
-  documents: Document[];
+  @OneToMany(() => File, (file) => file.user)
+  files: File[];
 
   @OneToMany(() => Rating, (rating) => rating.rater)
   ratingsGiven: Rating[];

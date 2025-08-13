@@ -48,7 +48,7 @@ export class DeliveryAgentsService {
     const insertedUser = await this.usersService.insertOneDeliveryAgent(
       {
         email,
-        password: password,
+        password,
         user_type: UserType.DELIVERY_AGENT,
       },
       createdDeliveryAgent
@@ -58,13 +58,12 @@ export class DeliveryAgentsService {
       user_id: insertedUser.id,
     });
 
-    if (files?.length > 0) {
-      await this.filesService.createFile({
-        files,
-        id: createdDeliveryAgent.id,
-        targetType: FileTargetType.REGISTRATION_REQUEST,
-      });
-    }
+    await this.filesService.createFile({
+      files,
+      targetId: createdDeliveryAgent.id,
+      targetType: FileTargetType.REGISTRATION_REQUEST,
+      userId: insertedUser.id,
+    });
   }
 
   /* Db requests */

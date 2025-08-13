@@ -4,43 +4,53 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { UsersService } from "../users/users.service";
 import { UserType } from "src/types/user";
-import { CreateServiceAgentDto } from "./dto/create-user-service-agent.dto";
+import { CreateUserServiceAgentDto } from "./dto/create-user-service-agent.dto";
+import { FilesService } from "../files/files.service";
+import { FileTargetType } from "src/types/file";
+import { convertToMulterFile } from "src/utils/file-storage/convert";
+import { PrestationsService } from "../prestations/prestations.service";
 
 @Injectable()
 export class ServiceAgentsService {
   constructor(
     @InjectRepository(ServiceAgent)
     private readonly serviceAgentsRepository: Repository<ServiceAgent>,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private readonly filesService: FilesService,
+    private readonly prestationsService: PrestationsService
   ) {}
 
-  async createServiceAgent(createUserDto: CreateServiceAgentDto) {
+  async createServiceAgent(createUserDto: CreateUserServiceAgentDto) {
     const {
-      first_name,
-      last_name,
+      firstName,
+      lastName,
       email,
-      phone_number,
-      siret,
-      company_address,
-      company_name,
-      company_city,
-      token_request,
+      password,
+      phoneNumber,
+      companySiret,
+      companyAddress,
+      companyName,
+      companyCity,
+      files,
+      //certifications,
+      selectedPrestations,
     } = createUserDto;
 
     const createdServiceAgent = await this.insertOne({
-      first_name,
-      last_name,
-      phone_number,
-      siret,
-      company_address,
-      company_name,
-      company_city,
+      first_name: firstName,
+      last_name: lastName,
+      phone_number: phoneNumber,
+      siret: companySiret,
+      company_address: companyAddress,
+      company_name: companyName,
+      company_city: companyCity,
+      certifications: '',
     });
 
     const insertedUser = await this.usersService.insertOneServiceAgent(
       {
         email,
-        password: "",
+        password,
         user_type: UserType.SERVICE_AGENT,
       },
       createdServiceAgent
@@ -48,6 +58,20 @@ export class ServiceAgentsService {
 
     await this.updateOneById(insertedUser.service_agent.id, {
       user_id: insertedUser.id,
+    });
+
+    await this.prestationsService.createServiceAgentPrestations(
+      createdServiceAgent.id,
+      selectedPrestations
+    );
+
+    const finalConvertedFiles = files.map((file) => convertToMulterFile(file));
+
+    await this.filesService.createFile({
+      files: finalConvertedFiles,
+      targetId: createdServiceAgent.id,
+      targetType: FileTargetType.REGISTRATION_REQUEST,
+      userId: insertedUser.id,
     });
 
     //TODO: send email to service agent with token_request for reset password
@@ -74,6 +98,7 @@ export class ServiceAgentsService {
       | "company_address"
       | "company_name"
       | "company_city"
+      | "certifications"
     >
   ) {
     const serviceAgent = this.serviceAgentsRepository.create(merchantToCreate);

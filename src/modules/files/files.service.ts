@@ -128,32 +128,29 @@ export class FilesService {
     return getFileSignedUrl(uploadedFilePath, config.storage.bucket);
   }
 
-  async createFile(registration: {
+  async createFile(data: {
     files: Express.Multer.File[];
-    info?: string;
-    id: number;
+    userId: number;
     targetType: FileTargetType;
+    targetId: number;
+    info?: string;
   }) {
-    const { files, info, id, targetType } = registration;
-
-    if (!files.length) {
-      throw new HttpException("No files received", HttpStatus.BAD_REQUEST);
-    }
+    const { files, info, userId, targetType, targetId } = data;
 
     const createdFiles = [];
 
     for (const file of files) {
       const fileNameSlugified = slugify(file.originalname, {
         lower: true,
-      }).replace(/\.jpg|\.jpeg|\.png/i, ".pdf");
+      });
 
-      const fileFullPath = `${targetType}/${id}/${fileNameSlugified}`;
+      const fileFullPath = `${targetType}/${targetId}/${fileNameSlugified}`;
 
       try {
         const presignedURL: string = await this.processFile(
           fileFullPath,
           file,
-          id.toString()
+          targetId.toString()
         );
 
         const fileRecord = {
@@ -161,7 +158,8 @@ export class FilesService {
           file_name: fileNameSlugified,
           file_url: fileFullPath,
           target_type: targetType,
-          target_id: id,
+          target_id: targetId,
+          user_id: userId,
         };
 
         const createdFile = await this.insertOne(fileRecord);
@@ -173,7 +171,7 @@ export class FilesService {
       } catch (err) {
         console.error(err);
         throw new HttpException(
-          "Error while creating registration request file",
+          "Error while creating file with user relation",
           HttpStatus.INTERNAL_SERVER_ERROR
         );
       }

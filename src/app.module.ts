@@ -22,10 +22,7 @@ import { ScheduleModule } from "@nestjs/schedule";
 import { StoragesModule } from "./modules/storages/storages.module";
 import { NotificationsModule } from "./modules/notifications/notifications.module";
 import { PaymentsModule } from "./modules/payments/payments.module";
-import { Announcement } from "./modules/announcements/entities/annoucement.entity";
 import { AnnouncementsModule } from "./modules/announcements/announcements.module";
-import { DocumentsModule } from "./modules/documents/documents.module";
-
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -61,7 +58,6 @@ import { DocumentsModule } from "./modules/documents/documents.module";
     ScheduleModule.forRoot(),
     UsersModule,
     AuthModule,
-    //RegistrationRequestsModule,
     CustomersModule,
     DeliveryAgentsModule,
     ServiceAgentsModule,
@@ -74,7 +70,6 @@ import { DocumentsModule } from "./modules/documents/documents.module";
     NotificationsModule,
     PaymentsModule,
     AnnouncementsModule,
-    DocumentsModule,
   ],
   controllers: [AppController],
   providers: [

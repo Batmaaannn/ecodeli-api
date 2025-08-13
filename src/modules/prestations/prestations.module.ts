@@ -9,5 +9,6 @@ import { ServiceAgentPrestation } from "./entities/service-agent-prestation.enti
   imports: [TypeOrmModule.forFeature([Prestation, ServiceAgentPrestation])],
   controllers: [PrestationsController],
   providers: [PrestationsService],
+  exports: [PrestationsService],
 })
 export class PrestationsModule {}
