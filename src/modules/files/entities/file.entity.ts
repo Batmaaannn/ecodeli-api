@@ -2,13 +2,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
-  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
 import { Status } from "src/types/status";
-import { FileTargetType } from "src/types/file";
+import { FileTargetType, DocumentType } from "src/types/file";
 
 @Entity({ name: "files" })
 export class File {
@@ -42,6 +40,9 @@ export class File {
 
   @Column({ nullable: true })
   info: string;
+
+  @Column({ type: "enum", enum: DocumentType, nullable: true })
+  document_type: DocumentType;
 
   @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
   created_at: Date;
