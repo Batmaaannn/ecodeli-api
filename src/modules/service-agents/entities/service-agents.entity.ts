@@ -26,8 +26,8 @@ export class ServiceAgent {
   @Column()
   company_address: string;
 
-  @Column({ nullable: true })
-  company_city?: string;
+  @Column()
+  company_city: string;
 
   @Column()
   first_name: string;

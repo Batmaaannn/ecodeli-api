@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "./entities/user.entity";
-import { Repository } from "typeorm";
+import { Not, Repository } from "typeorm";
 import {
   CustomerUser,
   DeliveryAgentUser,
@@ -44,6 +44,15 @@ export class UsersService {
     });
   }
 
+  async findUsersRequestsNotValidated(): Promise<User[]> {
+    const test = await this.usersRepository.find({
+      where: [{ is_validated: false }],
+      relations: ["delivery_agent", "service_agent", "merchant"],
+    });
+    console.log(test);
+    return test;
+  }
+
   async insertOneCustomer(
     customerToCreate: Pick<
       CustomerUser,
@@ -62,7 +71,10 @@ export class UsersService {
   }
 
   async insertOneMerchant(
-    merchantToCreate: Pick<MerchantUser, "email" | "password" | "user_type" | "is_validated">,
+    merchantToCreate: Pick<
+      MerchantUser,
+      "email" | "password" | "user_type" | "is_validated"
+    >,
     merchant: Merchant
   ): Promise<User> {
     const user = this.usersRepository.create({
