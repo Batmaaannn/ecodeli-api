@@ -128,12 +128,13 @@ export class FilesService {
     return getFileSignedUrl(uploadedFilePath, config.storage.bucket);
   }
 
-  async createMerchantFile(registration: {
+  async createFile(registration: {
     files: Express.Multer.File[];
     info?: string;
-    merchantId: number;
+    id: number;
+    targetType: FileTargetType;
   }) {
-    const { files, info, merchantId } = registration;
+    const { files, info, id, targetType } = registration;
 
     if (!files.length) {
       throw new HttpException("No files received", HttpStatus.BAD_REQUEST);
@@ -146,21 +147,21 @@ export class FilesService {
         lower: true,
       }).replace(/\.jpg|\.jpeg|\.png/i, ".pdf");
 
-      const fileFullPath = `merchant/${merchantId}/${fileNameSlugified}`;
+      const fileFullPath = `${targetType}/${id}/${fileNameSlugified}`;
 
       try {
         const presignedURL: string = await this.processFile(
           fileFullPath,
           file,
-          merchantId.toString()
+          id.toString()
         );
 
         const fileRecord = {
           ...(info && { info }),
           file_name: fileNameSlugified,
           file_url: fileFullPath,
-          target_type: FileTargetType.MERCHANT,
-          target_id: merchantId,
+          target_type: targetType,
+          target_id: id,
         };
 
         const createdFile = await this.insertOne(fileRecord);

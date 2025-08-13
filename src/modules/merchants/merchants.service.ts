@@ -6,6 +6,7 @@ import { Repository } from "typeorm";
 import { CreateUserMerchantDto } from "./dto/create-user-merchant.dto";
 import { UserType } from "src/types/user";
 import { FilesService } from "../files/files.service";
+import { FileTargetType } from "src/types/file";
 
 @Injectable()
 export class MerchantsService {
@@ -45,7 +46,7 @@ export class MerchantsService {
         email,
         password,
         user_type: UserType.MERCHANT,
-        is_validated: true
+        is_validated: true,
       },
       createdMerchant
     );
@@ -55,9 +56,10 @@ export class MerchantsService {
     });
 
     if (files?.length > 0) {
-      await this.filesService.createMerchantFile({
+      await this.filesService.createFile({
         files,
-        merchantId: createdMerchant.id,
+        id: createdMerchant.id,
+        targetType: FileTargetType.MERCHANT,
       });
     }
   }
