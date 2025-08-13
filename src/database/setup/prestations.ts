@@ -22,13 +22,30 @@ export const importPrestations = async (dataSource: DataSource) => {
 
       fastcsv
         .parseFile(fullPath, {
-          headers: ["category", "prestation"],
+          headers: [
+            "category",
+            "label",
+            "ecodeli_price",
+            "pricing_unit",
+            "description",
+          ],
           delimiter: ";",
         })
-        .transform((data: { category: string; prestation: string }) => ({
-          category: data.category.trim(),
-          label: data.prestation.trim(),
-        }))
+        .transform(
+          (data: {
+            category: string;
+            label: string;
+            ecodeli_price: string;
+            pricing_unit: string;
+            description: string;
+          }) => ({
+            category: data.category.trim(),
+            label: data.label.trim(),
+            ecodeli_price: parseFloat(data.ecodeli_price.trim()) || 0,
+            pricing_unit: data.pricing_unit.trim(),
+            description: data.description.trim(),
+          })
+        )
         .on("data", (row) => {
           const keys = Object.keys(row);
 
