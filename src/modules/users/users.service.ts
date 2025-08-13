@@ -62,12 +62,13 @@ export class UsersService {
   }
 
   async insertOneMerchant(
-    merchantToCreate: Pick<MerchantUser, "email" | "password" | "user_type">,
+    merchantToCreate: Pick<MerchantUser, "email" | "password" | "user_type" | "is_validated">,
     merchant: Merchant
   ): Promise<User> {
     const user = this.usersRepository.create({
       ...merchantToCreate,
       email: merchantToCreate.email.toLowerCase(),
+      is_validated: merchantToCreate.is_validated,
       merchant,
     });
 

@@ -10,8 +10,9 @@ import {
   HttpStatus,
   HttpCode 
 } from '@nestjs/common';
-import { AnnouncementsService, CreateAnnouncementDto, UpdateAnnouncementDto } from './announcements.service';
+import { AnnouncementsService, UpdateAnnouncementDto } from './announcements.service';
 import { AnnouncementStatus } from 'src/types/announcement';
+import { CreateAnnouncementDto } from './dto/create-announcement.dto';
 
 @Controller('announcements')
 export class AnnouncementsController {

@@ -23,7 +23,7 @@ export class MerchantsService {
       email,
       password,
       phoneNumber,
-      siret,
+      companySiret,
       companyAddress,
       companyName,
       companyCity,
@@ -34,7 +34,7 @@ export class MerchantsService {
       first_name: firstName,
       last_name: lastName,
       phone_number: phoneNumber,
-      siret,
+      siret: companySiret,
       company_address: companyAddress,
       company_name: companyName,
       company_city: companyCity,
@@ -45,6 +45,7 @@ export class MerchantsService {
         email,
         password,
         user_type: UserType.MERCHANT,
+        is_validated: true
       },
       createdMerchant
     );

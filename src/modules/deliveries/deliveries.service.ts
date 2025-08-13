@@ -55,9 +55,6 @@ export class DeliveriesService {
       );
     }
 
-    console.log("price raw:", body.price);
-    console.log("price parsed:", parseFloat(body.price));
-
     const finalDto: CreateDeliveryRequestDto = {
       start_city: body.start_city,
       arrival_city: body.arrival_city,

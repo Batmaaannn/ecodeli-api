@@ -29,6 +29,9 @@ export class AuthService {
     if (!isMatch)
       throw new HttpException("Wrong Credentials", HttpStatus.UNAUTHORIZED);
 
+    if (!user.is_validated)
+      throw new HttpException("Account not validated", HttpStatus.FORBIDDEN);
+
     return user;
   }
 

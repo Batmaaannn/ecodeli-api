@@ -5,7 +5,7 @@ export class CreateUserMerchantDto {
   @ApiProperty()
   @IsNotEmpty()
   @Length(14, 14, { message: "Siret is not equal 14" })
-  siret: string;
+  companySiret: string;
 
   @ApiProperty()
   @IsNotEmpty()
@@ -18,6 +18,10 @@ export class CreateUserMerchantDto {
   @ApiProperty()
   @IsNotEmpty()
   companyCity: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  companyPostalCode: string;
 
   @ApiProperty()
   @IsEmail()

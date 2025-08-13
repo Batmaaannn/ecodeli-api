@@ -10,7 +10,7 @@ import {
 import { Status } from "src/types/status";
 import { FileTargetType } from "src/types/file";
 
-@Entity({ name: "file" })
+@Entity({ name: "files" })
 export class File {
   @PrimaryGeneratedColumn()
   id: number;

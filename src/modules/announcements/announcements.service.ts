@@ -3,6 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Announcement } from "./entities/annoucement.entity";
 import { AnnouncementStatus } from "src/types/announcement";
+import { CreateAnnouncementDto } from "./dto/create-announcement.dto";
 
 export interface UpdateAnnouncementDto {
   title?: string;
