@@ -25,6 +25,9 @@ export class File {
   @Column({ nullable: true })
   approval_date: Date;
 
+  @Column({ nullable: true })
+  approval_user_id: number;
+
   @Column({
     type: "enum",
     enum: Status,

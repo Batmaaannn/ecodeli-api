@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { ServiceAgent } from "./entities/service-agents.entity";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Brackets, Repository } from "typeorm";
 import { UsersService } from "../users/users.service";
 import { UserType } from "src/types/user";
 import { CreateUserServiceAgentDto } from "./dto/create-user-service-agent.dto";
@@ -9,6 +9,13 @@ import { FilesService } from "../files/files.service";
 import { FileTargetType } from "src/types/file";
 import { convertToMulterFile } from "src/utils/file-storage/convert";
 import { PrestationsService } from "../prestations/prestations.service";
+import {
+  IPaginationOptions,
+  paginate,
+  Pagination,
+} from "nestjs-typeorm-paginate";
+import { OptionsFilters } from "src/types/db-requests";
+import { DeliveryAgent } from "../delivery-agents/entities/delivery-agents.entity";
 
 @Injectable()
 export class ServiceAgentsService {
@@ -44,7 +51,7 @@ export class ServiceAgentsService {
       company_address: companyAddress,
       company_name: companyName,
       company_city: companyCity,
-      certifications: '',
+      certifications: "",
     });
 
     const insertedUser = await this.usersService.insertOneServiceAgent(
@@ -70,11 +77,18 @@ export class ServiceAgentsService {
     await this.filesService.createFile({
       files: finalConvertedFiles,
       targetId: createdServiceAgent.id,
-      targetType: FileTargetType.REGISTRATION_REQUEST,
+      targetType: FileTargetType.SERVICE_AGENT,
       userId: insertedUser.id,
     });
 
     //TODO: send email to service agent with token_request for reset password
+  }
+
+  async getPendingServiceAgents(
+    options: OptionsFilters,
+    optionsPaginate: IPaginationOptions
+  ): Promise<Pagination<ServiceAgent>> {
+    return this.findManyServiceAgentsByFilters(options, optionsPaginate);
   }
 
   /* Db requests */
@@ -112,5 +126,39 @@ export class ServiceAgentsService {
     await this.serviceAgentsRepository.update(id, dataToUpdate);
 
     return this.serviceAgentsRepository.findOne({ where: { id } });
+  }
+
+  async findManyServiceAgentsByFilters(
+    options: OptionsFilters,
+    optionsPaginate: IPaginationOptions
+  ): Promise<Pagination<ServiceAgent>> {
+    const queryBuilder =
+      this.serviceAgentsRepository.createQueryBuilder("serviceAgent");
+
+    queryBuilder
+      .leftJoinAndSelect("serviceAgent.user", "user")
+      .groupBy("serviceAgent.id")
+      .addGroupBy("user.id");
+
+    if (options.activated) {
+      queryBuilder.andWhere(
+        new Brackets((qb) => {
+          qb.where("user.activated = :activated", {
+            activated: options.activated,
+          });
+        })
+      );
+    }
+
+    if (options.sort) {
+      const splitSortAndValue = options.sort.split(/([x^+-])/g);
+      if (splitSortAndValue[1] === "+") {
+        queryBuilder.orderBy(splitSortAndValue[2], "ASC");
+      } else {
+        queryBuilder.orderBy(splitSortAndValue[2], "DESC");
+      }
+    }
+
+    return await paginate<ServiceAgent>(queryBuilder, optionsPaginate);
   }
 }

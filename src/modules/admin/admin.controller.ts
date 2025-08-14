@@ -16,6 +16,7 @@ import { DeliveryAgent } from "../delivery-agents/entities/delivery-agents.entit
 import { Pagination } from "nestjs-typeorm-paginate";
 import { DeliveryAgentsService } from "../delivery-agents/delivery-agents.service";
 import { ServiceAgentsService } from "../service-agents/service-agents.service";
+import { ServiceAgent } from "../service-agents/entities/service-agents.entity";
 
 @ApiBearerAuth()
 @ApiTags("admin")
@@ -41,14 +42,39 @@ export class AdminController {
 
     return this.deliveryAgentsService.getPendingDeliveryAgents(
       { activated, sort },
-      { page, limit }
+      {
+        page,
+        limit,
+        route: "/admin/delivery-agents",
+      }
     );
   }
 
-  //   @Get("delivery-agents/:id")
-  //   async getDeliveryAgentDetails(@Param("id") userId: number) {
-  //     return this.validationService.getDeliveryAgentValidationDetails(userId);
-  //   }
+  @Get("delivery-agents/:id")
+  async getDeliveryAgentDetails(@Param("id") id: number) {
+    return this.deliveryAgentsService.getDeliveryAgentAndFilesById(id);
+  }
+
+  @Get("service-agents")
+  @ApiQuery({ name: "activated", required: false, type: Boolean })
+  @ApiQuery({ name: "sort", required: false, type: String })
+  async getPendingServiceAgents(
+    @Query("activated") activated: boolean,
+    @Query("sort") sort: string,
+    @Query("page", new DefaultValuePipe(1), ParseIntPipe) page = 1,
+    @Query("limit", new DefaultValuePipe(15), ParseIntPipe) limit = 15
+  ): Promise<Pagination<ServiceAgent>> {
+    limit = limit > 100 ? 100 : limit;
+
+    return this.serviceAgentsService.getPendingServiceAgents(
+      { activated, sort },
+      {
+        page,
+        limit,
+        route: "/admin/service-agents",
+      }
+    );
+  }
 
   //   // ✅ VALIDER/REJETER UN DELIVERY AGENT
   //   @Put("delivery-agents/:id")

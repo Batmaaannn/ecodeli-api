@@ -1,7 +1,7 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "./entities/user.entity";
-import { Not, Repository } from "typeorm";
+import { Repository } from "typeorm";
 import {
   CustomerUser,
   DeliveryAgentUser,
@@ -12,7 +12,8 @@ import { Customer } from "../customers/entities/customer.entity";
 import { Merchant } from "../merchants/entities/merchants.entity";
 import { ServiceAgent } from "../service-agents/entities/service-agents.entity";
 import { DeliveryAgent } from "../delivery-agents/entities/delivery-agents.entity";
-import { FileTargetType } from "src/types/file";
+import { getFileSignedUrl } from "src/utils/file-storage/s3";
+import config from "src/config";
 
 @Injectable()
 export class UsersService {
@@ -28,24 +29,6 @@ export class UsersService {
   async getUser(id: number): Promise<Omit<User, "password">> {
     return this.findOneById(+id);
   }
-
-  // async getUserWithFilesById(id: number): Promise<any> {
-  //   const user = await this.findOneByIdWithAllRelations(id);
-
-  //   if (!user) {
-  //     return null;
-  //   }
-
-  //   const files = await this.filesService.getFilesByTargetTypeAndId(
-  //     FileTargetType.REGISTRATION_REQUEST,
-  //     user.id
-  //   );
-
-  //   return {
-  //     ...user,
-  //     files,
-  //   };
-  // }
 
   /* Db requests */
   async findOneById(id: number): Promise<User> {

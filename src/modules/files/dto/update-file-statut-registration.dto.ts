@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty } from "class-validator";
 import { Status } from "src/types/status";
+import { DocumentType } from "src/types/file";
 
 export class UpdateFileStatutRegistrationDto {
   @ApiProperty()
@@ -12,6 +13,9 @@ export class UpdateFileStatutRegistrationDto {
   status: Status;
 
   @ApiProperty()
+  validityDate: Date | null;
+
+  @ApiProperty()
   @IsNotEmpty()
-  validityDate: Date;
+  type: DocumentType;
 }

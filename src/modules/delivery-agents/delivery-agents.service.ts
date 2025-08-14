@@ -13,6 +13,7 @@ import {
   Pagination,
 } from "nestjs-typeorm-paginate";
 import { OptionsFilters } from "src/types/db-requests";
+import { File } from "../files/entities/file.entity";
 
 @Injectable()
 export class DeliveryAgentsService {
@@ -67,7 +68,7 @@ export class DeliveryAgentsService {
     await this.filesService.createFile({
       files,
       targetId: createdDeliveryAgent.id,
-      targetType: FileTargetType.REGISTRATION_REQUEST,
+      targetType: FileTargetType.DELIVERY_AGENT,
       userId: insertedUser.id,
     });
   }
@@ -77,6 +78,26 @@ export class DeliveryAgentsService {
     optionsPaginate: IPaginationOptions
   ): Promise<Pagination<DeliveryAgent>> {
     return this.findManyDeliveryAgentsByFilters(options, optionsPaginate);
+  }
+
+  async getDeliveryAgentAndFilesById(
+    id: number
+  ): Promise<DeliveryAgent & { files: File[] }> {
+    const deliveryAgent = await this.findOneByIdWithAllRelations(id);
+
+    if (!deliveryAgent) {
+      return null;
+    }
+
+    const files = await this.filesService.getFilesByTargetTypeAndId(
+      FileTargetType.DELIVERY_AGENT,
+      deliveryAgent.id
+    );
+
+    return {
+      ...deliveryAgent,
+      files: files || [],
+    };
   }
 
   /* Db requests */
@@ -93,6 +114,13 @@ export class DeliveryAgentsService {
   findOneByLicense(license: string): Promise<DeliveryAgent> {
     return this.deliveryAgentsRepository.findOne({
       where: { license_number: license },
+    });
+  }
+
+  async findOneByIdWithAllRelations(id: number): Promise<DeliveryAgent> {
+    return this.deliveryAgentsRepository.findOne({
+      where: { id },
+      relations: ["user"],
     });
   }
 
@@ -156,6 +184,6 @@ export class DeliveryAgentsService {
       }
     }
 
-    return paginate<DeliveryAgent>(queryBuilder, optionsPaginate);
+    return await paginate<DeliveryAgent>(queryBuilder, optionsPaginate);
   }
 }

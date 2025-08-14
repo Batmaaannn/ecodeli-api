@@ -17,22 +17,20 @@ export class FilesService {
     private fileRepository: Repository<File>
   ) {}
 
-  async updateFileRegistration(
-    registrationId: number,
+  async updateFileStatus(
+    targetId: number,
+    userId: number,
     updateFileStatutRegistrationDto: UpdateFileStatutRegistrationDto[]
   ): Promise<File> {
     for (const updateDto of updateFileStatutRegistrationDto) {
-      const { id, status, validityDate } = updateDto;
+      const { id, status, validityDate, type } = updateDto;
       const file = await this.findOneById(id);
 
       if (!file) {
         throw new HttpException(`File not found`, HttpStatus.NOT_FOUND);
       }
 
-      const isAuthorized = checkUserCanUpdateRegistrationFile(
-        registrationId,
-        file
-      );
+      const isAuthorized = checkUserCanUpdateRegistrationFile(targetId, file);
 
       if (!isAuthorized)
         throw new HttpException(
@@ -42,6 +40,9 @@ export class FilesService {
 
       file.status = status;
       file.validity = validityDate;
+      file.document_type = type;
+      file.approval_user_id = userId;
+
 
       switch (status) {
         case Status.ACCEPTED:
@@ -124,6 +125,12 @@ export class FilesService {
     }
 
     return createdFiles;
+  }
+
+  async getFileDownloadUrl(filePath: string): Promise<string> {
+    const url = await getFileSignedUrl(filePath, config.storage.bucket);
+
+    return url;
   }
 
   /* Db Request */
