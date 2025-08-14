@@ -47,6 +47,7 @@
     "handlebars": "^4.7.8",
     "lodash": "^4.17.21",
     "nestjs-form-data": "^1.9.92",
+    "nestjs-typeorm-paginate": "^4.1.0",
     "node-mailjet": "^6.0.8",
     "nodemailer": "^7.0.5",
     "passport": "^0.7.0",

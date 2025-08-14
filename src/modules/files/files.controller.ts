@@ -22,31 +22,6 @@ import { UpdateFileStatutRegistrationDto } from "./dto/update-file-statut-regist
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
 
-  @Public()
-  @Post("register-request-files")
-  @UseInterceptors(FilesInterceptor("files"))
-  async createServiceAgent(
-    @UploadedFiles() files: Express.Multer.File[],
-    @Body() createFileDto: CreateFileDto
-  ) {
-    files.map((file) => {
-      if (
-        !file.mimetype.match(
-          /jpg|jpeg|png|application\/octet-stream|application\/pdf/i
-        )
-      )
-        throw new HttpException(
-          "Can only process jpg, jpeg or pdf files",
-          HttpStatus.BAD_REQUEST
-        );
-    });
-
-    return this.filesService.createRegistrationRequestFile({
-      ...createFileDto,
-      files,
-    });
-  }
-
   @Patch(":registrationId/update-registration")
   @Roles(UserType.ADMIN)
   async updateFileStatutRegistration(

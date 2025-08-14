@@ -23,14 +23,16 @@ import { StoragesModule } from "./modules/storages/storages.module";
 import { NotificationsModule } from "./modules/notifications/notifications.module";
 import { PaymentsModule } from "./modules/payments/payments.module";
 import { AnnouncementsModule } from "./modules/announcements/announcements.module";
+import { ConfigModule } from "@nestjs/config";
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      envFilePath: ".env",
+      isGlobal: true,
+    }),
     TypeOrmModule.forRoot({
       type: "postgres",
-      host: config.postgres_database.host,
-      port: config.postgres_database.port,
-      username: config.postgres_database.username,
-      password: config.postgres_database.password,
+      url: process.env.DATABASE_URL,
       database: config.postgres_database.name,
       entities: [__dirname + "/**/*.entity{.ts,.js}"],
       synchronize: true,

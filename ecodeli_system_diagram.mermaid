@@ -238,31 +238,6 @@ erDiagram
         int max_packages
     }
 
-    %% Entités Additionnelles
-    REGISTRATION_REQUESTS {
-        int id PK
-        int user_id FK
-        enum registration_type "delivery_agent|service_agent"
-        enum status "pending|approved|rejected"
-        text admin_comment
-        datetime validated_at
-        int validated_by
-        datetime created_at
-        datetime updated_at
-    }
-
-    FILES {
-        int id PK
-        int user_id FK
-        int registration_request_id FK
-        string filename
-        string path
-        string mimetype
-        int size
-        enum type "identity|license|insurance|vehicle|siret|other"
-        datetime created_at
-    }
-
     %% Relations
     USERS ||--o{ DELIVERY_AGENTS : "is_a"
     USERS ||--o{ CUSTOMERS : "is_a"
@@ -289,9 +264,6 @@ erDiagram
     USERS ||--o{ RATINGS : "receives"
     USERS ||--o{ NOTIFICATIONS : "receives"
     USERS ||--o{ DOCUMENTS : "owns"
-    USERS ||--o{ REGISTRATION_REQUESTS : "submits"
-    
-    REGISTRATION_REQUESTS ||--o{ FILES : "contains"
     
     DELIVERIES ||--o{ RATINGS : "rated_for"
     APPOINTMENTS ||--o{ RATINGS : "rated_for"

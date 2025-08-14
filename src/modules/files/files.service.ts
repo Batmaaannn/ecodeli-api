@@ -17,60 +17,6 @@ export class FilesService {
     private fileRepository: Repository<File>
   ) {}
 
-  async createRegistrationRequestFile(registration: {
-    files: Express.Multer.File[];
-    info?: string;
-    tokenRequest: string;
-    registrationRequestId: number;
-  }) {
-    const { files, info, tokenRequest, registrationRequestId } = registration;
-
-    if (!files.length) {
-      throw new HttpException("No files received", HttpStatus.BAD_REQUEST);
-    }
-
-    const createdFiles = [];
-
-    for (const file of files) {
-      const fileNameSlugified = slugify(file.originalname, {
-        lower: true,
-      }).replace(/\.jpg|\.jpeg|\.png/i, ".pdf");
-
-      const fileFullPath = `${tokenRequest}/${fileNameSlugified}`;
-
-      try {
-        const presignedURL: string = await this.processFile(
-          fileFullPath,
-          file,
-          tokenRequest.toString()
-        );
-
-        const fileRecord = {
-          ...(info && { info }),
-          file_name: fileNameSlugified,
-          file_url: fileFullPath,
-          target_type: FileTargetType.REGISTRATION_REQUEST,
-          target_id: registrationRequestId,
-        };
-
-        const createdFile = await this.insertOne(fileRecord);
-
-        createdFiles.push({
-          ...createdFile,
-          url: presignedURL,
-        });
-      } catch (err) {
-        console.error(err);
-        throw new HttpException(
-          "Error while creating registration request file",
-          HttpStatus.INTERNAL_SERVER_ERROR
-        );
-      }
-    }
-
-    return createdFiles;
-  }
-
   async updateFileRegistration(
     registrationId: number,
     updateFileStatutRegistrationDto: UpdateFileStatutRegistrationDto[]

@@ -1,10 +1,9 @@
-import { Controller, Get, Request } from "@nestjs/common";
+import { Controller, Get, Request, Param, ParseIntPipe } from "@nestjs/common";
 import { UsersService } from "./users.service";
-import { ApiBearerAuth } from "@nestjs/swagger";
-import { Roles } from "../auth/decorator/roles.decorator";
-import { UserType } from "src/types/user";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 
 @ApiBearerAuth()
+@ApiTags("users")
 @Controller("users")
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -14,11 +13,5 @@ export class UsersController {
     const { userId } = req.user;
 
     return this.usersService.getUser(userId);
-  }
-
-  @Roles(UserType.ADMIN)
-  @Get("requests")
-  async getUsersRequestsNotValidated() {
-    return this.usersService.findUsersRequestsNotValidated();
   }
 }

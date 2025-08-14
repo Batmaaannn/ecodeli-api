@@ -12,6 +12,7 @@ import { Customer } from "../customers/entities/customer.entity";
 import { Merchant } from "../merchants/entities/merchants.entity";
 import { ServiceAgent } from "../service-agents/entities/service-agents.entity";
 import { DeliveryAgent } from "../delivery-agents/entities/delivery-agents.entity";
+import { FileTargetType } from "src/types/file";
 
 @Injectable()
 export class UsersService {
@@ -20,13 +21,31 @@ export class UsersService {
     private usersRepository: Repository<User>
   ) {}
 
-  async getMyUser(id: number | string): Promise<any> {
+  async getMyUser(id: number): Promise<any> {
     return this.findOneByIdWithAllRelations(+id);
   }
 
-  async getUser(id: number | string): Promise<Omit<User, "password">> {
+  async getUser(id: number): Promise<Omit<User, "password">> {
     return this.findOneById(+id);
   }
+
+  // async getUserWithFilesById(id: number): Promise<any> {
+  //   const user = await this.findOneByIdWithAllRelations(id);
+
+  //   if (!user) {
+  //     return null;
+  //   }
+
+  //   const files = await this.filesService.getFilesByTargetTypeAndId(
+  //     FileTargetType.REGISTRATION_REQUEST,
+  //     user.id
+  //   );
+
+  //   return {
+  //     ...user,
+  //     files,
+  //   };
+  // }
 
   /* Db requests */
   async findOneById(id: number): Promise<User> {
@@ -45,12 +64,10 @@ export class UsersService {
   }
 
   async findUsersRequestsNotValidated(): Promise<User[]> {
-    const test = await this.usersRepository.find({
+    return await this.usersRepository.find({
       where: [{ is_validated: false }],
       relations: ["delivery_agent", "service_agent", "merchant"],
     });
-    console.log(test);
-    return test;
   }
 
   async insertOneCustomer(

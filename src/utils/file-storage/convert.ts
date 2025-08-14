@@ -4,7 +4,8 @@ import * as fs from "fs";
 export const convertToMulterFile = (
   file: FileSystemStoredFile
 ): Express.Multer.File => {
-  console.log("Converting FileSystemStoredFile to Express.Multer.File:", file);
+
+  console.log("Converting file:", file.path);
   const fileBuffer = fs.readFileSync(file.path);
   const fileSize = fs.statSync(file.path).size;
 

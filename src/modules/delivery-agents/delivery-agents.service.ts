@@ -1,12 +1,18 @@
 import { Injectable } from "@nestjs/common";
 import { DeliveryAgent } from "./entities/delivery-agents.entity";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Brackets, Repository } from "typeorm";
 import { UsersService } from "../users/users.service";
 import { UserType } from "src/types/user";
 import { CreateUserDeliveryAgentDto } from "./dto/create-user-delivery-agent.dto";
 import { FilesService } from "../files/files.service";
 import { FileTargetType } from "src/types/file";
+import {
+  IPaginationOptions,
+  paginate,
+  Pagination,
+} from "nestjs-typeorm-paginate";
+import { OptionsFilters } from "src/types/db-requests";
 
 @Injectable()
 export class DeliveryAgentsService {
@@ -66,6 +72,13 @@ export class DeliveryAgentsService {
     });
   }
 
+  async getPendingDeliveryAgents(
+    options: OptionsFilters,
+    optionsPaginate: IPaginationOptions
+  ): Promise<Pagination<DeliveryAgent>> {
+    return this.findManyDeliveryAgentsByFilters(options, optionsPaginate);
+  }
+
   /* Db requests */
   async findOne(id: number): Promise<DeliveryAgent> {
     return this.deliveryAgentsRepository.findOne({ where: { id } });
@@ -110,5 +123,39 @@ export class DeliveryAgentsService {
     await this.deliveryAgentsRepository.update(id, dataToUpdate);
 
     return this.deliveryAgentsRepository.findOne({ where: { id } });
+  }
+
+  async findManyDeliveryAgentsByFilters(
+    options: OptionsFilters,
+    optionsPaginate: IPaginationOptions
+  ): Promise<Pagination<DeliveryAgent>> {
+    const queryBuilder =
+      this.deliveryAgentsRepository.createQueryBuilder("deliveryAgent");
+
+    queryBuilder
+      .leftJoinAndSelect("deliveryAgent.user", "user")
+      .groupBy("deliveryAgent.id")
+      .addGroupBy("user.id");
+
+    if (options.activated) {
+      queryBuilder.andWhere(
+        new Brackets((qb) => {
+          qb.where("user.activated = :activated", {
+            activated: options.activated,
+          });
+        })
+      );
+    }
+
+    if (options.sort) {
+      const splitSortAndValue = options.sort.split(/([x^+-])/g);
+      if (splitSortAndValue[1] === "+") {
+        queryBuilder.orderBy(splitSortAndValue[2], "ASC");
+      } else {
+        queryBuilder.orderBy(splitSortAndValue[2], "DESC");
+      }
+    }
+
+    return paginate<DeliveryAgent>(queryBuilder, optionsPaginate);
   }
 }
