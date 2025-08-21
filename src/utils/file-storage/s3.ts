@@ -18,8 +18,25 @@ const s3Client = new S3Client({
   },
   endpoint: config.storage.host,
   region: config.storage.region,
-  forcePathStyle: config.environment === Environments.DEV,
+  forcePathStyle: true, // Always use path-style for MinIO
 });
+
+// Create a separate client for public URL generation in development
+const getPublicS3Client = () => {
+  if (config.environment === Environments.DEV) {
+    // For development, use localhost endpoint for signed URLs
+    return new S3Client({
+      credentials: {
+        accessKeyId: config.storage.accessKeyId,
+        secretAccessKey: config.storage.secretKey,
+      },
+      endpoint: "http://localhost:9000",
+      region: config.storage.region,
+      forcePathStyle: true,
+    });
+  }
+  return s3Client;
+};
 
 export const uploadFile = async (
   file: Express.Multer.File | Buffer | Uint8Array,
@@ -72,13 +89,16 @@ export const getFileSignedUrl = async (filepath: string, bucket: string) => {
   const params = {
     Bucket: bucket,
     Key: filepath,
-    Expires: config.storage.fileUrlExpiration,
   };
   const command = new GetObjectCommand(params);
 
-  return getSignedUrl(s3Client, command, {
+  const publicClient = getPublicS3Client();
+  
+  const signedUrl = await getSignedUrl(publicClient, command, {
     expiresIn: config.storage.fileUrlExpiration,
   });
+
+  return signedUrl;
 };
 
 export const removeFile = async (filepath: string, bucket: string) => {

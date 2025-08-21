@@ -1,0 +1,269 @@
+---
+id: e29a7be2-ad3f-4b47-b9b0-1b24812d521c
+---
+erDiagram
+    %% Entités Utilisateurs
+    USERS {
+        int id PK
+        string email UK
+        string password
+        enum user_type "customer|delivery_agent|merchant|service_agent|admin"
+        boolean is_validated
+        boolean is_active
+        datetime created_at
+        datetime updated_at
+    }
+
+    DELIVERY_AGENTS {
+        int id PK
+        int user_id FK
+        string siret
+        string company_name
+        string company_address
+        string company_city
+        string first_name
+        string last_name
+        string phone_number
+        enum vehicle_type "car|van|truck|scooter|bike|foot"
+        string license_number
+        decimal rating
+        boolean is_validated
+        string nfc_card_id UK
+        datetime created_at
+        datetime updated_at
+    }
+
+    CUSTOMERS {
+        int id PK
+        int user_id FK
+        string first_name
+        string last_name
+        string phone_number
+        string address_1
+        string address_2
+        string postal_code
+        string city
+        enum subscription_plan "free|starter|premium"
+        decimal wallet_balance
+        datetime subscription_start
+        boolean tutorial_completed
+        datetime created_at
+        datetime updated_at
+    }
+
+    MERCHANTS {
+        int id PK
+        int user_id FK
+        string company_name
+        string siret
+        string iban
+        string address_1
+        string address_2
+        string postal_code
+        string city
+        string phone_number
+        datetime created_at
+        datetime updated_at
+    }
+
+    SERVICE_AGENTS {
+        int id PK
+        int user_id FK
+        string siret
+        string company_name
+        string company_address
+        string company_city
+        string first_name
+        string last_name
+        string phone_number
+        string iban
+        decimal overall_rating
+        int total_jobs
+        datetime created_at
+        datetime updated_at
+    }
+
+    %% Entités Métier - Livraisons
+    ANNOUNCEMENTS {
+        int id PK
+        int customer_id FK
+        string title
+        text description
+        string departure_city
+        string arrival_city
+        decimal price
+        datetime pickup_date
+        datetime delivery_date
+        boolean assurance
+        boolean urgent
+        string pickup_instructions
+        enum status "posted|matched|in_progress|delivered|cancelled"
+        enum announcement_type "package|service|transport"
+        datetime created_at
+        datetime updated_at
+    }
+
+    DELIVERIES {
+        int id PK
+        int announcement_id FK
+        int delivery_agent_id FK
+        enum delivery_type "full|partial"
+        string tracking_code UK
+        enum status "assigned|picked_up|in_transit|delivered"
+        datetime pickup_time
+        datetime delivery_time
+        string delivery_code
+        datetime created_at
+    }
+
+    PACKAGES {
+        int id PK
+        int delivery_id FK
+        int storage_box_id FK
+        string object_type
+        decimal weight
+        string dimensions
+        decimal value
+        string description
+        string photo_url
+        datetime created_at
+    }
+
+    %% Entités Métier - Services
+    PRESTATIONS {
+        int id PK
+        string label
+        string category
+        decimal ecodeli_price
+        string pricing_unit "delivery|hour|km|day|visit|order"
+        text description
+        boolean is_active
+        datetime created_at
+        datetime updated_at
+    }
+
+    SERVICE_AGENT_PRESTATIONS {
+        int id PK
+        int service_agent_id FK
+        int prestation_id FK
+        decimal requested_price
+        decimal applied_price
+        enum price_status "pending|approved|rejected"
+        text ecodeli_comment
+        boolean is_available
+        datetime validated_at
+        int validated_by
+        datetime created_at
+        datetime updated_at
+    }
+
+    APPOINTMENTS {
+        int id PK
+        int customer_id FK
+        int service_agent_prestation_id FK
+        datetime appointment_date
+        string address
+        string city
+        string postal_code
+        text description
+        enum status "pending|confirmed|in_progress|completed|cancelled"
+        decimal final_price
+        text special_instructions
+        datetime created_at
+        datetime updated_at
+    }
+
+    %% Entités Système
+    PAYMENTS {
+        int id PK
+        int user_id FK
+        decimal amount
+        enum payment_type "delivery|service|subscription"
+        enum status "pending|completed|failed|refunded"
+        string stripe_payment_id
+        datetime transaction_date
+        int related_id "delivery_id or appointment_id"
+    }
+
+    RATINGS {
+        int id PK
+        int rater_id FK
+        int rated_id FK
+        int delivery_id FK
+        int appointment_id FK
+        int rating_value "1-5"
+        text comment
+        datetime created_at
+        datetime updated_at
+    }
+
+    NOTIFICATIONS {
+        int id PK
+        int user_id FK
+        string title
+        text content
+        enum notification_type "delivery_match|payment|booking|system"
+        boolean is_read
+        datetime created_at
+        string onesignal_id
+    }
+
+    STORAGE_BOXES {
+        int id PK
+        int customer_id FK
+        string box_location "paris|marseille|lyon|lille|montpellier|rennes"
+        enum box_size "small|medium|large|xl"
+        boolean is_occupied
+        datetime rental_start
+        datetime rental_end
+    }
+
+    DOCUMENTS {
+        int id PK
+        int user_id FK
+        enum document_type "invoice|contract|delivery_proof|identity"
+        string file_path
+        datetime generated_at
+        boolean is_archived
+    }
+
+    ROUTES {
+        int id PK
+        int delivery_agent_id FK
+        string departure_city
+        string arrival_city
+        datetime departure_date
+        datetime arrival_date
+        boolean is_available
+        int max_packages
+    }
+
+    %% Relations
+    USERS ||--o{ DELIVERY_AGENTS : "is_a"
+    USERS ||--o{ CUSTOMERS : "is_a"
+    USERS ||--o{ MERCHANTS : "is_a"
+    USERS ||--o{ SERVICE_AGENTS : "is_a"
+    
+    CUSTOMERS ||--o{ ANNOUNCEMENTS : "posts"
+    CUSTOMERS ||--o{ APPOINTMENTS : "books"
+    CUSTOMERS ||--o{ STORAGE_BOXES : "rents"
+    
+    ANNOUNCEMENTS ||--o{ DELIVERIES : "generates"
+    DELIVERY_AGENTS ||--o{ DELIVERIES : "performs"
+    DELIVERY_AGENTS ||--o{ ROUTES : "plans"
+    
+    DELIVERIES ||--o{ PACKAGES : "contains"
+    STORAGE_BOXES ||--o{ PACKAGES : "stores"
+    
+    SERVICE_AGENTS ||--o{ SERVICE_AGENT_PRESTATIONS : "offers"
+    PRESTATIONS ||--o{ SERVICE_AGENT_PRESTATIONS : "priced_by"
+    SERVICE_AGENT_PRESTATIONS ||--o{ APPOINTMENTS : "fulfills"
+    
+    USERS ||--o{ PAYMENTS : "makes"
+    USERS ||--o{ RATINGS : "gives"
+    USERS ||--o{ RATINGS : "receives"
+    USERS ||--o{ NOTIFICATIONS : "receives"
+    USERS ||--o{ DOCUMENTS : "owns"
+    
+    DELIVERIES ||--o{ RATINGS : "rated_for"
+    APPOINTMENTS ||--o{ RATINGS : "rated_for"

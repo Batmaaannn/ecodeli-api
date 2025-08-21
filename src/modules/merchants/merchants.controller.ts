@@ -30,9 +30,9 @@ export class MerchantsController {
     @UploadedFiles() files: Express.Multer.File[],
     @Body() createUserDto: CreateUserMerchantDto
   ) {
-    const { email, siret } = createUserDto;
+    const { email, companySiret } = createUserDto;
 
-    const siretExists = await this.merchantsService.findOneBySiret(siret);
+    const siretExists = await this.merchantsService.findOneBySiret(companySiret);
     if (siretExists) {
       throw new HttpException("Siret exists", HttpStatus.CONFLICT);
     }

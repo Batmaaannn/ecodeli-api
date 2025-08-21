@@ -8,7 +8,7 @@ import config from "src/config";
 import { FileTargetType } from "src/types/file";
 import { UpdateFileStatutRegistrationDto } from "./dto/update-file-statut-registration.dto";
 import { checkUserCanUpdateRegistrationFile } from "src/utils/authorized";
-import { Statut } from "src/types/statut";
+import { Status } from "src/types/status";
 
 @Injectable()
 export class FilesService {
@@ -17,76 +17,20 @@ export class FilesService {
     private fileRepository: Repository<File>
   ) {}
 
-  async createRegistrationRequestFile(registration: {
-    files: Express.Multer.File[];
-    info?: string;
-    tokenRequest: string;
-    registrationRequestId: number;
-  }) {
-    const { files, info, tokenRequest, registrationRequestId } = registration;
-
-    if (!files.length) {
-      throw new HttpException("No files received", HttpStatus.BAD_REQUEST);
-    }
-
-    const createdFiles = [];
-
-    for (const file of files) {
-      const fileNameSlugified = slugify(file.originalname, {
-        lower: true,
-      }).replace(/\.jpg|\.jpeg|\.png/i, ".pdf");
-
-      const fileFullPath = `${tokenRequest}/${fileNameSlugified}`;
-
-      try {
-        const presignedURL: string = await this.processFile(
-          fileFullPath,
-          file,
-          tokenRequest.toString()
-        );
-
-        const fileRecord = {
-          ...(info && { info }),
-          file_name: fileNameSlugified,
-          file_url: fileFullPath,
-          target_type: FileTargetType.REGISTRATION_REQUEST,
-          target_id: registrationRequestId,
-        };
-
-        const createdFile = await this.insertOne(fileRecord);
-
-        createdFiles.push({
-          ...createdFile,
-          url: presignedURL,
-        });
-      } catch (err) {
-        console.error(err);
-        throw new HttpException(
-          "Error while creating registration request file",
-          HttpStatus.INTERNAL_SERVER_ERROR
-        );
-      }
-    }
-
-    return createdFiles;
-  }
-
-  async updateFileRegistration(
-    registrationId: number,
+  async updateFileStatus(
+    targetId: number,
+    userId: number,
     updateFileStatutRegistrationDto: UpdateFileStatutRegistrationDto[]
   ): Promise<File> {
     for (const updateDto of updateFileStatutRegistrationDto) {
-      const { id, status, validityDate } = updateDto;
+      const { id, status, validityDate, type } = updateDto;
       const file = await this.findOneById(id);
 
       if (!file) {
         throw new HttpException(`File not found`, HttpStatus.NOT_FOUND);
       }
 
-      const isAuthorized = checkUserCanUpdateRegistrationFile(
-        registrationId,
-        file
-      );
+      const isAuthorized = checkUserCanUpdateRegistrationFile(targetId, file);
 
       if (!isAuthorized)
         throw new HttpException(
@@ -96,13 +40,16 @@ export class FilesService {
 
       file.status = status;
       file.validity = validityDate;
+      file.document_type = type;
+      file.approval_user_id = userId;
+
 
       switch (status) {
-        case Statut.ACCEPTED:
+        case Status.ACCEPTED:
           file.approval_date = new Date();
           break;
-        case Statut.REJECTED:
-        case Statut.PENDING:
+        case Status.REJECTED:
+        case Status.PENDING:
           file.approval_date = null;
           break;
       }
@@ -128,39 +75,38 @@ export class FilesService {
     return getFileSignedUrl(uploadedFilePath, config.storage.bucket);
   }
 
-  async createMerchantFile(registration: {
+  async createFile(data: {
     files: Express.Multer.File[];
+    userId: number;
+    targetType: FileTargetType;
+    targetId: number;
     info?: string;
-    merchantId: number;
   }) {
-    const { files, info, merchantId } = registration;
-
-    if (!files.length) {
-      throw new HttpException("No files received", HttpStatus.BAD_REQUEST);
-    }
+    const { files, info, userId, targetType, targetId } = data;
 
     const createdFiles = [];
 
     for (const file of files) {
       const fileNameSlugified = slugify(file.originalname, {
         lower: true,
-      }).replace(/\.jpg|\.jpeg|\.png/i, ".pdf");
+      });
 
-      const fileFullPath = `merchant/${merchantId}/${fileNameSlugified}`;
+      const fileFullPath = `${targetType}/${targetId}/${fileNameSlugified}`;
 
       try {
         const presignedURL: string = await this.processFile(
           fileFullPath,
           file,
-          merchantId.toString()
+          targetId.toString()
         );
 
         const fileRecord = {
           ...(info && { info }),
           file_name: fileNameSlugified,
           file_url: fileFullPath,
-          target_type: FileTargetType.MERCHANT,
-          target_id: merchantId,
+          target_type: targetType,
+          target_id: targetId,
+          user_id: userId,
         };
 
         const createdFile = await this.insertOne(fileRecord);
@@ -172,13 +118,19 @@ export class FilesService {
       } catch (err) {
         console.error(err);
         throw new HttpException(
-          "Error while creating registration request file",
+          "Error while creating file with user relation",
           HttpStatus.INTERNAL_SERVER_ERROR
         );
       }
     }
 
     return createdFiles;
+  }
+
+  async getFileDownloadUrl(filePath: string): Promise<string> {
+    const url = await getFileSignedUrl(filePath, config.storage.bucket);
+
+    return url;
   }
 
   /* Db Request */

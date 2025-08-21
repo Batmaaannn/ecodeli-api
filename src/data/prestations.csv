@@ -1,22 +1,22 @@
-Transport;Transport quotidien de personnes
-Transport;Transfert vers/depuis une gare ou un aéroport
-Transport;Accompagnement pour rendez-vous médicaux ou administratifs
-Transport;Covoiturage ponctuel ou régulier vers le travail ou l’école
-Transport;Transport adapté pour personnes à mobilité réduite
-Courses;Courses alimentaires livrées à domicile
-Courses;Retrait et livraison de commandes
-Courses;Achat de produits spécifiques à l’étranger
-Courses;Achats urgents
-Assistance;Garde d’animaux pendant les déplacements
-Assistance;Promenade d’animaux de compagnie
-Assistance;Arrosage des plantes pendant l’absence
-Assistance;Surveillance du domicile pendant de courtes absences
-Assistance;Livraison ou préparation de repas pour une personne dépendante
-Multi-prestations;Petits travaux de bricolage
-Multi-prestations;Jardinage léger
-Multi-prestations;Ménage ponctuel ou régulier
-Multi-prestations;Aide au déménagement
-Multi-prestations;Préparation ou nettoyage de logement pour location
-Aide administrative;Assistance pour remplir des documents administratifs
-Aide administrative;Aide à la déclaration d’impôts
-Aide administrative;Traduction ou accompagnement pour démarches en langue étrangère
+Transport;Transport quotidien de personnes;15;hour;Déplacement régulier de personnes pour des trajets quotidiens
+Transport;Transfert vers/depuis une gare ou un aéroport;0.8;km;Trajet dédié pour rejoindre ou quitter un aéroport ou une gare
+Transport;Accompagnement pour rendez-vous médicaux ou administratifs;18;hour;Transport et assistance pour se rendre à un rendez-vous
+Transport;Covoiturage ponctuel ou régulier vers le travail ou l’école;0.5;km;Partage de trajets domicile-travail ou domicile-école
+Transport;Transport adapté pour personnes à mobilité réduite;20;hour;Véhicule équipé pour le transport sécurisé des personnes à mobilité réduite
+Courses;Courses alimentaires livrées à domicile;10;delivery;Achat et livraison de courses alimentaires à domicile
+Courses;Retrait et livraison de commandes;8;delivery;Prise en charge et livraison de commandes diverses
+Courses;Achat de produits spécifiques à l’étranger;50;order;Commande et importation de produits non disponibles localement
+Courses;Achats urgents;15;hour;Achat et livraison rapide de produits nécessaires
+Assistance;Garde d’animaux pendant les déplacements;20;day;Prise en charge d’animaux domestiques durant l’absence du propriétaire
+Assistance;Promenade d’animaux de compagnie;10;hour;Sortie et exercice pour animaux domestiques
+Assistance;Arrosage des plantes pendant l’absence;8;visit;Entretien des plantes en l’absence du propriétaire
+Assistance;Surveillance du domicile pendant de courtes absences;15;day;Visites régulières pour vérifier le domicile
+Assistance;Livraison ou préparation de repas pour une personne dépendante;12;meal;Préparation ou livraison de repas adaptés
+Multi-prestations;Petits travaux de bricolage;18;hour;Réparations simples et petits aménagements
+Multi-prestations;Jardinage léger;15;hour;Entretien basique du jardin
+Multi-prestations;Ménage ponctuel ou régulier;14;hour;Nettoyage complet d’un logement
+Multi-prestations;Aide au déménagement;20;hour;Aide au transport et à l’installation des meubles et cartons
+Multi-prestations;Préparation ou nettoyage de logement pour location;16;hour;Mise en état d’un logement avant ou après location
+Aide administrative;Assistance pour remplir des documents administratifs;15;hour;Aide pour compléter des formulaires et documents officiels
+Aide administrative;Aide à la déclaration d’impôts;20;hour;Accompagnement pour remplir et soumettre la déclaration fiscale
+Aide administrative;Traduction ou accompagnement pour démarches en langue étrangère;25;hour;Assistance linguistique pour démarches administratives

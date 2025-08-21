@@ -7,10 +7,11 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
-import { Statut } from "src/types/statut";
-import { FileTargetType } from "src/types/file";
+import { Status } from "src/types/status";
+import { FileTargetType, DocumentType } from "src/types/file";
+import { User } from "src/modules/users/entities/user.entity";
 
-@Entity({ name: "file" })
+@Entity({ name: "files" })
 export class File {
   @PrimaryGeneratedColumn()
   id: number;
@@ -24,12 +25,15 @@ export class File {
   @Column({ nullable: true })
   approval_date: Date;
 
+  @Column({ nullable: true })
+  approval_user_id: number;
+
   @Column({
     type: "enum",
-    enum: Statut,
-    default: Statut.PENDING,
+    enum: Status,
+    default: Status.PENDING,
   })
-  status: Statut;
+  status: Status;
 
   @Column()
   file_url: string;
@@ -42,6 +46,16 @@ export class File {
 
   @Column({ nullable: true })
   info: string;
+
+  @Column({ type: "enum", enum: DocumentType, nullable: true })
+  document_type: DocumentType;
+
+  @ManyToOne(() => User, (user) => user.files)
+  @JoinColumn({ name: "user_id" })
+  user: User;
+
+  @Column({ nullable: true })
+  user_id: number;
 
   @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
   created_at: Date;

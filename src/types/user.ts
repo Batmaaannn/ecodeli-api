@@ -20,6 +20,8 @@ interface BaseUser {
   id: number;
   email: string;
   password: string;
+  is_validated: boolean;
+  is_active: boolean;
   created_at: Date;
   updated_at: Date;
 }

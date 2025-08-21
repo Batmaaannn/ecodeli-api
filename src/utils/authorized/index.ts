@@ -20,7 +20,7 @@ export const checkUserCanAddReview = (
 };
 
 export const checkUserCanUpdateRegistrationFile = (id: number, file: any) => {
-  if (file.target_type !== FileTargetType.REGISTRATION_REQUEST) return false;
+  // if (file.target_type !== FileTargetType.REGISTRATION_REQUEST) return false;
 
   if (file.target_id === id) return true;
 

@@ -3,7 +3,7 @@ import { AppModule } from "./app.module";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import config from "src/config";
 import { Environments } from "./types/environments";
-import { ValidationPipe } from "@nestjs/common";
+import { BadRequestException, ValidationPipe } from "@nestjs/common";
 import * as cookieParser from "cookie-parser";
 import { RouteLoggerMiddleware } from "./libs/middlewares/route-logger";
 import passport from "passport";
@@ -30,7 +30,12 @@ async function bootstrap() {
 
   app.useGlobalPipes(
     new ValidationPipe({
+      whitelist: true,
       transform: true,
+      exceptionFactory: (errors) => {
+        console.error("Validation errors:", errors);
+        return new BadRequestException(errors);
+      },
     })
   );
 

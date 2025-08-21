@@ -2,23 +2,46 @@ import {
   IsNotEmpty,
   IsEmail,
   Length,
-  IsEnum,
-  IsOptional,
+  ValidateNested,
 } from "class-validator";
-import { VehiculeType } from "src/types/vehicule";
 import { ApiProperty } from "@nestjs/swagger";
-import { Statut } from "src/types/statut";
-import { AgentType } from "src/types/user";
+import { Type } from "class-transformer";
+import {
+  FileSystemStoredFile,
+  HasMimeType,
+  IsFiles,
+} from "nestjs-form-data";
 
-export class CreateServiceAgentDto {
+export class SelectedPrestationsDto {
+  @ApiProperty()
+  @IsNotEmpty()
+  prestationId: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  requestedPrice: string;
+}
+export class CreateUserServiceAgentDto {
   @ApiProperty()
   @IsNotEmpty()
   @Length(14, 14, { message: "Siret is not equal 14" })
-  siret: string;
+  companySiret: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  token_request: string;
+  companyName: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  companyAddress: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  companyCity: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  companyPostalCode: string;
 
   @ApiProperty()
   @IsEmail()
@@ -27,29 +50,27 @@ export class CreateServiceAgentDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  company_name: string;
+  firstName: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  company_address: string;
+  lastName: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  company_city: string;
+  password: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  first_name: string;
+  phoneNumber: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  last_name: string;
+  @ValidateNested({ each: true })
+  @Type(() => SelectedPrestationsDto)
+  selectedPrestations: SelectedPrestationsDto[];
 
-  @ApiProperty()
-  @IsNotEmpty()
-  phone_number: string;
-
-  @ApiProperty({ type: [Number] })
-  @IsNotEmpty()
-  prestationLinks?: number[];
+  @IsFiles()
+  @HasMimeType(["application/pdf", "image/jpeg", "image/png"], { each: true })
+  files: FileSystemStoredFile[];
 }

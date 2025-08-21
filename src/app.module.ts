@@ -5,32 +5,35 @@ import { UsersModule } from "./modules/users/users.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import config from "./config";
-import { RegistrationRequestsModule } from "./modules/registration-requests/registration-requests.module";
 import { CustomersModule } from "./modules/customers/customers.module";
 import { DeliveryAgentsModule } from "./modules/delivery-agents/delivery-agents.module";
 import { ServiceAgentsModule } from "./modules/service-agents/service-agents.module";
 import { MerchantsModule } from "./modules/merchants/merchants.module";
 import { PrestationsModule } from "./modules/prestations/prestations.module";
-import { ReviewsModule } from "./modules/reviews/reviews.module";
+import { RatingsModule } from "./modules/ratings/ratings.module";
 import { AppointmentModule } from "./modules/appointment/appointment.module";
 import { APP_GUARD } from "@nestjs/core";
 import { RolesGuard } from "./modules/auth/guards/roles.guard";
 import { JwtAuthGuard } from "./modules/auth/guards/jwt-auth.guard";
-import {DeliveryRequestsModule} from "./modules/deliveries/delivery-requests.module";
-import {TripModule} from "./modules/trip/trip.modules";
+import { DeliveriesModule } from "./modules/deliveries/deliveries.module";
 import { MailerModule } from "@nestjs-modules/mailer";
-import {HandlebarsAdapter} from "@nestjs-modules/mailer/dist/adapters/handlebars.adapter";
-import { ScheduleModule } from '@nestjs/schedule';
-import {DeliveryMatchModule} from "./modules/deliveries/delivery-match.module";
-
+import { HandlebarsAdapter } from "@nestjs-modules/mailer/dist/adapters/handlebars.adapter";
+import { ScheduleModule } from "@nestjs/schedule";
+import { StoragesModule } from "./modules/storages/storages.module";
+import { NotificationsModule } from "./modules/notifications/notifications.module";
+import { PaymentsModule } from "./modules/payments/payments.module";
+import { AnnouncementsModule } from "./modules/announcements/announcements.module";
+import { ConfigModule } from "@nestjs/config";
+import { AdminModule } from "./modules/admin/admin.module";
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      envFilePath: ".env",
+      isGlobal: true,
+    }),
     TypeOrmModule.forRoot({
       type: "postgres",
-      host: config.postgres_database.host,
-      port: config.postgres_database.port,
-      username: config.postgres_database.username,
-      password: config.postgres_database.password,
+      url: process.env.DATABASE_URL,
       database: config.postgres_database.name,
       entities: [__dirname + "/**/*.entity{.ts,.js}"],
       synchronize: true,
@@ -48,7 +51,7 @@ import {DeliveryMatchModule} from "./modules/deliveries/delivery-match.module";
         from: '"App" <stainvy@gmail.com>',
       },
       template: {
-        dir: process.cwd() + '/src/utils/emails/templates/',
+        dir: process.cwd() + "/src/utils/emails/templates/",
         adapter: new HandlebarsAdapter(),
         options: {
           strict: true,
@@ -58,17 +61,19 @@ import {DeliveryMatchModule} from "./modules/deliveries/delivery-match.module";
     ScheduleModule.forRoot(),
     UsersModule,
     AuthModule,
-    RegistrationRequestsModule,
     CustomersModule,
     DeliveryAgentsModule,
     ServiceAgentsModule,
     MerchantsModule,
-    ReviewsModule,
     PrestationsModule,
     AppointmentModule,
-    DeliveryRequestsModule,
-    TripModule,
-    DeliveryMatchModule
+    DeliveriesModule,
+    StoragesModule,
+    RatingsModule,
+    NotificationsModule,
+    PaymentsModule,
+    AnnouncementsModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [

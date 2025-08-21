@@ -4,9 +4,14 @@ import { DeliveryAgent } from "./entities/delivery-agents.entity";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { DeliveryAgentsService } from "./delivery-agents.service";
 import { UsersModule } from "../users/users.module";
+import { FilesModule } from "../files/files.module";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([DeliveryAgent]), UsersModule],
+  imports: [
+    TypeOrmModule.forFeature([DeliveryAgent]),
+    UsersModule,
+    FilesModule,
+  ],
   providers: [DeliveryAgentsService],
   controllers: [DeliveryAgentsController],
   exports: [DeliveryAgentsService],

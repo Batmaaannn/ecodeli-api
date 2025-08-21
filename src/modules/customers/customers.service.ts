@@ -15,12 +15,21 @@ export class CustomersService {
   ) {}
 
   async createCustomer(createUserDto: CreateUserCustomerDto) {
-    const { firstName, lastName, phoneNumber, email, password } = createUserDto;
+    const {
+      firstName,
+      lastName,
+      phoneNumber,
+      email,
+      password,
+      subscriptionPlan,
+    } = createUserDto;
 
     const createdCustomer = await this.insertOne({
       first_name: firstName,
       last_name: lastName,
       phone_number: phoneNumber,
+      subscription_plan: subscriptionPlan,
+      subscription_start: new Date(),
     });
 
     const insertedUser = await this.usersService.insertOneCustomer(
@@ -28,6 +37,7 @@ export class CustomersService {
         email,
         password,
         user_type: UserType.CUSTOMER,
+        is_validated: true,
       },
       createdCustomer
     );
@@ -42,7 +52,11 @@ export class CustomersService {
   async insertOne(
     customerToCreate: Pick<
       Customer,
-      "first_name" | "last_name" | "phone_number"
+      | "first_name"
+      | "last_name"
+      | "phone_number"
+      | "subscription_plan"
+      | "subscription_start"
     >
   ) {
     const customer = this.customersRepository.create(customerToCreate);

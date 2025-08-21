@@ -20,12 +20,20 @@ export class UsersService {
     private usersRepository: Repository<User>
   ) {}
 
-  async getMyUser(id: number | string): Promise<any> {
+  async getMyUser(id: number): Promise<any> {
     return this.findOneByIdWithAllRelations(+id);
   }
 
-  async getUser(id: number | string): Promise<Omit<User, "password">> {
+  async getUser(id: number): Promise<Omit<User, "password">> {
     return this.findOneById(+id);
+  }
+
+  async acceptUserRequest(id: number): Promise<void> {
+    await this.updateOneById(id, { is_validated: true });
+  }
+
+  async rejectUserRequest(id: number): Promise<void> {
+    await this.updateOneById(id, { is_validated: false, is_active: false });
   }
 
   /* Db requests */
@@ -44,26 +52,41 @@ export class UsersService {
     });
   }
 
+  async findUsersRequestsNotValidated(): Promise<User[]> {
+    return await this.usersRepository.find({
+      where: [{ is_validated: false }],
+      relations: ["delivery_agent", "service_agent", "merchant"],
+    });
+  }
+
   async insertOneCustomer(
-    customerToCreate: Pick<CustomerUser, "email" | "password" | "user_type">,
+    customerToCreate: Pick<
+      CustomerUser,
+      "email" | "password" | "user_type" | "is_validated"
+    >,
     customer: Customer
   ): Promise<User> {
     const user = this.usersRepository.create({
       ...customerToCreate,
       email: customerToCreate.email.toLowerCase(),
       customer,
+      is_validated: customerToCreate.is_validated,
     });
 
     return this.usersRepository.save(user);
   }
 
   async insertOneMerchant(
-    merchantToCreate: Pick<MerchantUser, "email" | "password" | "user_type">,
+    merchantToCreate: Pick<
+      MerchantUser,
+      "email" | "password" | "user_type" | "is_validated"
+    >,
     merchant: Merchant
   ): Promise<User> {
     const user = this.usersRepository.create({
       ...merchantToCreate,
       email: merchantToCreate.email.toLowerCase(),
+      is_validated: merchantToCreate.is_validated,
       merchant,
     });
 
@@ -100,5 +123,11 @@ export class UsersService {
     });
 
     return this.usersRepository.save(user);
+  }
+
+  async updateOneById(id: number, dataToUpdate: Partial<User>): Promise<void> {
+    await this.usersRepository.update(id, dataToUpdate);
+
+    return;
   }
 }

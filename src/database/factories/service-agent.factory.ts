@@ -26,7 +26,6 @@ export default setSeederFactory(ServiceAgent, (faker) => {
   serviceAgent.last_name = last_name;
   serviceAgent.first_name = first_name;
   serviceAgent.phone_number = telephone;
-  serviceAgent.address = address;
 
   console.log(serviceAgent);
   return serviceAgent;
