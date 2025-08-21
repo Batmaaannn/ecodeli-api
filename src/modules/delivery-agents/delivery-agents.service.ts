@@ -73,7 +73,7 @@ export class DeliveryAgentsService {
     });
   }
 
-  async getPendingDeliveryAgents(
+  async getDeliveryAgents(
     options: OptionsFilters,
     optionsPaginate: IPaginationOptions
   ): Promise<Pagination<DeliveryAgent>> {
@@ -168,7 +168,7 @@ export class DeliveryAgentsService {
     if (options.activated) {
       queryBuilder.andWhere(
         new Brackets((qb) => {
-          qb.where("user.activated = :activated", {
+          qb.where("user.is_activated = :activated", {
             activated: options.activated,
           });
         })

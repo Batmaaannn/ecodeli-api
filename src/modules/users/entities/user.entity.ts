@@ -18,7 +18,7 @@ import { Rating } from "src/modules/ratings/entities/rating.entity";
 import { Payment } from "src/modules/payments/entities/payment.entity";
 import { Notification } from "src/modules/notifications/entities/notification.entity";
 import { File } from "src/modules/files/entities/file.entity";
-
+import { Status } from "src/types/status";
 
 @Entity({ name: "users" })
 export class User {
@@ -40,6 +40,13 @@ export class User {
 
   @Column({ default: true })
   is_active: boolean;
+
+  @Column({
+    type: "enum",
+    enum: Status,
+    default: Status.PENDING,
+  })
+  status: Status;
 
   @OneToOne(() => Customer, (customer) => customer.user, {
     nullable: true,

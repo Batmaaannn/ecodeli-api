@@ -6,6 +6,7 @@ import {
   ParseIntPipe,
   Query,
   DefaultValuePipe,
+  Patch,
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { UsersService } from "../users/users.service";
@@ -26,13 +27,14 @@ export class AdminController {
   constructor(
     private readonly adminService: AdminService,
     private readonly deliveryAgentsService: DeliveryAgentsService,
-    private readonly serviceAgentsService: ServiceAgentsService
+    private readonly serviceAgentsService: ServiceAgentsService,
+    private readonly usersService: UsersService
   ) {}
 
   @Get("delivery-agents")
   @ApiQuery({ name: "activated", required: false, type: Boolean })
   @ApiQuery({ name: "sort", required: false, type: String })
-  async getPendingDeliveryAgents(
+  async getDeliveryAgents(
     @Query("activated") activated: boolean,
     @Query("sort") sort: string,
     @Query("page", new DefaultValuePipe(1), ParseIntPipe) page = 1,
@@ -40,7 +42,7 @@ export class AdminController {
   ): Promise<Pagination<DeliveryAgent>> {
     limit = limit > 100 ? 100 : limit;
 
-    return this.deliveryAgentsService.getPendingDeliveryAgents(
+    return this.deliveryAgentsService.getDeliveryAgents(
       { activated, sort },
       {
         page,
@@ -76,24 +78,15 @@ export class AdminController {
     );
   }
 
-  //   // ✅ VALIDER/REJETER UN DELIVERY AGENT
-  //   @Put("delivery-agents/:id")
-  //   async validateDeliveryAgent(
-  //     @Param("id") userId: number,
-  //     @Body()
-  //     body: {
-  //       decision: "approve" | "reject";
-  //       comment?: string;
-  //     },
-  //     @GetUser() admin: any
-  //   ) {
-  //     return this.validationService.validateDeliveryAgent(
-  //       userId,
-  //       admin.id,
-  //       body.decision,
-  //       body.comment
-  //     );
-  //   }
+  @Patch("users/:id/accept")
+  async acceptUserRequest(@Param("id") id: number) {
+    return this.usersService.acceptUserRequest(id);
+  }
+
+  @Patch("users/:id/reject")
+  async rejectUserRequest(@Param("id") id: number) {
+    return this.usersService.rejectUserRequest(id);
+  }
 
   //   // ✅ LISTE DES SERVICE AGENTS EN ATTENTE
   //   @Get("service-agents")

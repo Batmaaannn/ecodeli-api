@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "./entities/user.entity";
 import { Repository } from "typeorm";
@@ -12,8 +12,6 @@ import { Customer } from "../customers/entities/customer.entity";
 import { Merchant } from "../merchants/entities/merchants.entity";
 import { ServiceAgent } from "../service-agents/entities/service-agents.entity";
 import { DeliveryAgent } from "../delivery-agents/entities/delivery-agents.entity";
-import { getFileSignedUrl } from "src/utils/file-storage/s3";
-import config from "src/config";
 
 @Injectable()
 export class UsersService {
@@ -28,6 +26,14 @@ export class UsersService {
 
   async getUser(id: number): Promise<Omit<User, "password">> {
     return this.findOneById(+id);
+  }
+
+  async acceptUserRequest(id: number): Promise<void> {
+    await this.updateOneById(id, { is_validated: true });
+  }
+
+  async rejectUserRequest(id: number): Promise<void> {
+    await this.updateOneById(id, { is_validated: false, is_active: false });
   }
 
   /* Db requests */
@@ -117,5 +123,11 @@ export class UsersService {
     });
 
     return this.usersRepository.save(user);
+  }
+
+  async updateOneById(id: number, dataToUpdate: Partial<User>): Promise<void> {
+    await this.usersRepository.update(id, dataToUpdate);
+
+    return;
   }
 }
