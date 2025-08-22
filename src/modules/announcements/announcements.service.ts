@@ -4,6 +4,7 @@ import { Repository } from "typeorm";
 import { Announcement } from "./entities/annoucement.entity";
 import { AnnouncementStatus } from "src/types/announcement";
 import { CreateAnnouncementDto } from "./dto/create-announcement.dto";
+import { DeliveriesService } from "../deliveries/deliveries.service";
 
 export interface UpdateAnnouncementDto {
   title?: string;
@@ -23,17 +24,24 @@ export interface UpdateAnnouncementDto {
 export class AnnouncementsService {
   constructor(
     @InjectRepository(Announcement)
-    private announcementRepository: Repository<Announcement>
+    private announcementRepository: Repository<Announcement>,
+    private readonly deliveriesService: DeliveriesService,
   ) {}
 
-  async create(
+  async create(customerId: number,
     createAnnouncementDto: CreateAnnouncementDto
   ): Promise<Announcement> {
     const announcement = this.announcementRepository.create(
       createAnnouncementDto
     );
+
+    //Créer une annonce
+    //Créer une delivery 
+    //Créer des packages
     return await this.announcementRepository.save(announcement);
   }
+
+  /* Db Requests */
 
   async findAll(): Promise<Announcement[]> {
     return await this.announcementRepository.find({

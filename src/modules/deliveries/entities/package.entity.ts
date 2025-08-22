@@ -13,9 +13,6 @@ export class Package {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  package_type: string;
-
   @Column({ type: "decimal", precision: 8, scale: 3 })
   weight: number; //kg
 

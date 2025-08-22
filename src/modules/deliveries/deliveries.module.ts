@@ -10,5 +10,6 @@ import { Package } from "./entities/package.entity";
   imports: [TypeOrmModule.forFeature([Delivery, Route, Package])],
   providers: [DeliveriesService],
   controllers: [DeliveriesController],
+  exports: [DeliveriesService]
 })
 export class DeliveriesModule {}
