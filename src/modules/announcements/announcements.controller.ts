@@ -18,19 +18,20 @@ import {
 import { AnnouncementStatus } from "src/types/announcement";
 import { CreateAnnouncementDto } from "./dto/create-announcement.dto";
 import { FormDataRequest } from "nestjs-form-data";
+import { Roles } from "../auth/decorator/roles.decorator";
+import { UserType } from "src/types/user";
 
 @Controller("announcements")
 export class AnnouncementsController {
   constructor(private readonly announcementsService: AnnouncementsService) {}
 
   @Post()
+  @Roles(UserType.CUSTOMER)
   @FormDataRequest()
   create(@Request() req, @Body() createAnnouncementDto: CreateAnnouncementDto) {
     const { userId } = req.user;
 
-    console.log("Creating announcement with userId:", createAnnouncementDto);
-
-    //return this.announcementsService.create(userId, createAnnouncementDto);
+    return this.announcementsService.create(userId, createAnnouncementDto);
   }
 
   @Get()
@@ -41,9 +42,12 @@ export class AnnouncementsController {
     return this.announcementsService.findAll();
   }
 
-  @Get("customer/:customerId")
-  findByCustomer(@Param("customerId") customerId: string) {
-    return this.announcementsService.findByCustomer(+customerId);
+  @Get("customer")
+  @Roles(UserType.CUSTOMER)
+  findFuturesAnnouncementsByCustomer(@Request() req) {
+    const { userId } = req.user;
+
+    return this.announcementsService.findFuturesByCustomer(userId);
   }
 
   @Get(":id")

@@ -4,10 +4,12 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
+import { MerchantDelivery } from "./merchant-delivery.entity";
 
 @Entity({ name: "merchants" })
 export class Merchant {
@@ -46,6 +48,9 @@ export class Merchant {
   user?: User;
   @Column({ nullable: true })
   user_id?: number;
+
+  @OneToMany(() => MerchantDelivery, (delivery) => delivery.merchant)
+  deliveries: MerchantDelivery[];
 
   @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
   created_at: Date;

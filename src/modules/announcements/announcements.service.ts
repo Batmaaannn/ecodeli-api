@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { MoreThan, Repository } from "typeorm";
 import { Announcement } from "./entities/announcement.entity";
 import { AnnouncementStatus } from "src/types/announcement";
 import { CreateAnnouncementDto } from "./dto/create-announcement.dto";
@@ -33,8 +33,6 @@ export class AnnouncementsService {
     createAnnouncementDto: CreateAnnouncementDto
   ) {
     const { objects, ...announcementData } = createAnnouncementDto;
-
-    console.log("Creating announcement with data:", announcementData);
 
     const createdAnnouncement = await this.insertOne({
       title: announcementData.title,
@@ -99,12 +97,14 @@ export class AnnouncementsService {
     return announcement;
   }
 
-  async findByCustomer(customerId: number): Promise<Announcement[]> {
-    return await this.announcementRepository.find({
-      where: { customer_id: customerId },
+  async findFuturesByCustomer(customerId: number): Promise<Announcement[]> {
+    const test = await this.announcementRepository.find({
+      where: { customer_id: customerId, delivery_date: MoreThan(new Date()) },
       relations: ["customer", "deliveries"],
       order: { created_at: "DESC" },
     });
+    console.log("Futures announcements for customer:", customerId, test);
+    return test;
   }
 
   async findByStatus(status: AnnouncementStatus): Promise<Announcement[]> {
