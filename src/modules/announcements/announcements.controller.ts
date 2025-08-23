@@ -50,6 +50,14 @@ export class AnnouncementsController {
     return this.announcementsService.findFuturesByCustomer(userId);
   }
 
+  @Get("customer/past")
+  @Roles(UserType.CUSTOMER)
+  findPastAnnouncementsByCustomer(@Request() req) {
+    const { userId } = req.user;
+
+    return this.announcementsService.findPastByCustomer(userId);
+  }
+
   @Get(":id")
   findOne(@Param("id") id: string) {
     return this.announcementsService.findOne(+id);
