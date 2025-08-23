@@ -36,6 +36,7 @@ export class StorageBox {
   @ManyToOne(() => Customer, (customer) => customer.storageBoxes)
   @JoinColumn({ name: "customer_id" })
   customer: Customer;
+  @Column()
   customer_id: number;
 
   @OneToMany(() => Package, (packageEntity) => packageEntity.storageBox)

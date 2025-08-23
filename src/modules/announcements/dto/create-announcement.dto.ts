@@ -4,6 +4,7 @@ import {
   IsBoolean,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   Min,
   ValidateNested,
 } from "class-validator";
@@ -81,24 +82,28 @@ export class ObjectDto {
   quantity: number;
 
   @ApiProperty()
+  @IsOptional()
   @IsNumber()
   @Type(() => Number)
   @Min(0)
   length: number;
 
   @ApiProperty()
+  @IsOptional()
   @IsNumber()
   @Type(() => Number)
   @Min(0)
   width: number;
 
   @ApiProperty()
+  @IsOptional()
   @IsNumber()
   @Type(() => Number)
   @Min(0)
   height: number;
 
   @ApiProperty()
+  @IsOptional()
   @IsNumber()
   @Type(() => Number)
   @Min(0)

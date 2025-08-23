@@ -2,7 +2,7 @@ import { forwardRef, Module } from "@nestjs/common";
 import { AnnouncementsService } from "./announcements.service";
 import { AnnouncementsController } from "./announcements.controller";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { Announcement } from "./entities/annoucement.entity";
+import { Announcement } from "./entities/announcement.entity";
 import { FileSystemStoredFile, NestjsFormDataModule } from "nestjs-form-data";
 import { DeliveriesModule } from "../deliveries/deliveries.module";
 

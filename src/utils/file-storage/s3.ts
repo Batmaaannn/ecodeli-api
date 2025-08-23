@@ -93,7 +93,7 @@ export const getFileSignedUrl = async (filepath: string, bucket: string) => {
   const command = new GetObjectCommand(params);
 
   const publicClient = getPublicS3Client();
-  
+
   const signedUrl = await getSignedUrl(publicClient, command, {
     expiresIn: config.storage.fileUrlExpiration,
   });
@@ -108,4 +108,19 @@ export const removeFile = async (filepath: string, bucket: string) => {
   };
 
   await s3Client.send(new DeleteObjectCommand(params));
+};
+
+export const processFile = async (
+  path: string,
+  fileToUpload: Express.Multer.File,
+  id: string
+) => {
+  const uploadedFilePath = await uploadFile(
+    fileToUpload,
+    path,
+    config.storage.bucket,
+    { id }
+  );
+
+  return getFileSignedUrl(uploadedFilePath, config.storage.bucket);
 };

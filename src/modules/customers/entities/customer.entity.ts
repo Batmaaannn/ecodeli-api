@@ -1,4 +1,4 @@
-import { Announcement } from "src/modules/announcements/entities/annoucement.entity";
+import { Announcement } from "src/modules/announcements/entities/announcement.entity";
 import { Appointment } from "src/modules/appointment/entities/appointment.entity";
 import { Rating } from "src/modules/ratings/entities/rating.entity";
 import { StorageBox } from "src/modules/storages/entities/storage-box.entity";

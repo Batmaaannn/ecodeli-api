@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { Announcement } from "./entities/annoucement.entity";
+import { Announcement } from "./entities/announcement.entity";
 import { AnnouncementStatus } from "src/types/announcement";
 import { CreateAnnouncementDto } from "./dto/create-announcement.dto";
 import { DeliveriesService } from "../deliveries/deliveries.service";
@@ -25,23 +25,59 @@ export class AnnouncementsService {
   constructor(
     @InjectRepository(Announcement)
     private announcementRepository: Repository<Announcement>,
-    private readonly deliveriesService: DeliveriesService,
+    private readonly deliveriesService: DeliveriesService
   ) {}
 
-  async create(customerId: number,
+  async create(
+    customerId: number,
     createAnnouncementDto: CreateAnnouncementDto
-  ): Promise<Announcement> {
-    const announcement = this.announcementRepository.create(
-      createAnnouncementDto
-    );
+  ) {
+    const { objects, ...announcementData } = createAnnouncementDto;
 
-    //Créer une annonce
-    //Créer une delivery 
-    //Créer des packages
-    return await this.announcementRepository.save(announcement);
+    console.log("Creating announcement with data:", announcementData);
+
+    const createdAnnouncement = await this.insertOne({
+      title: announcementData.title,
+      description: announcementData.description,
+      price: announcementData.price,
+      assurance: announcementData.assurance ?? false,
+      urgent: announcementData.urgent ?? false,
+      customer_id: customerId,
+      departure_city: announcementData.departureCity,
+      arrival_city: announcementData.arrivalCity,
+      pickup_date: announcementData.pickupDate,
+      delivery_date: announcementData.deliveryDate,
+      pickup_instructions: announcementData.pickupInstructions,
+    });
+
+    await this.deliveriesService.createDeliveryWithPackages(
+      createdAnnouncement.id,
+      objects
+    );
   }
 
   /* Db Requests */
+
+  async insertOne(
+    announcementToCreate: Pick<
+      Announcement,
+      | "title"
+      | "description"
+      | "departure_city"
+      | "arrival_city"
+      | "price"
+      | "pickup_date"
+      | "delivery_date"
+      | "assurance"
+      | "urgent"
+      | "pickup_instructions"
+      | "customer_id"
+    >
+  ) {
+    const announcement =
+      this.announcementRepository.create(announcementToCreate);
+    return this.announcementRepository.save(announcement);
+  }
 
   async findAll(): Promise<Announcement[]> {
     return await this.announcementRepository.find({

@@ -71,6 +71,7 @@ export class Announcement {
   @ManyToOne(() => Customer, (customer) => customer.announcements)
   @JoinColumn({ name: "customer_id" })
   customer: Customer;
+  @Column()
   customer_id: number;
 
   @OneToMany(() => Delivery, (delivery) => delivery.announcement)

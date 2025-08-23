@@ -37,5 +37,6 @@ export class Route {
   @ManyToOne(() => DeliveryAgent, (delivery_agent) => delivery_agent.routes)
   @JoinColumn({ name: "delivery_agent_id" })
   delivery_agent: DeliveryAgent;
+  @Column()
   delivery_agent_id: number;
 }

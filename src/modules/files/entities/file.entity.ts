@@ -53,7 +53,6 @@ export class File {
   @ManyToOne(() => User, (user) => user.files)
   @JoinColumn({ name: "user_id" })
   user: User;
-
   @Column({ nullable: true })
   user_id: number;
 

@@ -37,10 +37,12 @@ export class Package {
   @ManyToOne(() => Delivery, (delivery) => delivery.packages)
   @JoinColumn({ name: "delivery_id" })
   delivery: Delivery;
+  @Column({ nullable: true })
   delivery_id: number;
 
   @ManyToOne(() => StorageBox, (storageBox) => storageBox.packages)
   @JoinColumn({ name: "storage_box_id" })
   storageBox: StorageBox;
+  @Column({ nullable: true })
   storage_box_id: number;
 }

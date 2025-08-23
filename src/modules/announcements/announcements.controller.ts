@@ -27,7 +27,10 @@ export class AnnouncementsController {
   @FormDataRequest()
   create(@Request() req, @Body() createAnnouncementDto: CreateAnnouncementDto) {
     const { userId } = req.user;
-    return this.announcementsService.create(userId, createAnnouncementDto);
+
+    console.log("Creating announcement with userId:", createAnnouncementDto);
+
+    //return this.announcementsService.create(userId, createAnnouncementDto);
   }
 
   @Get()
