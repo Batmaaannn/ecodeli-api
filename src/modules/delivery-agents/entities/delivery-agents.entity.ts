@@ -42,17 +42,25 @@ export class DeliveryAgent {
   @Column({ type: "enum", enum: VehiculeType, default: VehiculeType.VAN })
   vehicle_type: VehiculeType;
 
-  @Column({ nullable: true })
+  @Column()
   license_number: string;
 
   @Column({ type: "decimal", precision: 3, scale: 2, default: 0 })
   rating: number;
 
-  @Column({ default: false })
-  is_validated: boolean;
-
   @Column({ unique: true, nullable: true })
   nfc_card_id: string;
+
+  @Column({ default: false })
+  has_completed_profile: boolean;
+
+  @Column({ nullable: true })
+  favorite_delivery_city: string;
+
+  @Column({ nullable: true })
+  max_radius_km: number;
+
+  // Relations
 
   @OneToMany(() => Delivery, (delivery) => delivery.delivery_agent)
   deliveries: Delivery[];

@@ -9,6 +9,7 @@ import { generateTrackingCode } from "src/utils/tracking";
 import slugify from "slugify";
 import { convertToMulterFile } from "src/utils/file-storage/convert";
 import { processFile } from "src/utils/file-storage/s3";
+import { Route } from "./entities/route.entity";
 
 @Injectable()
 export class DeliveriesService {
@@ -16,7 +17,8 @@ export class DeliveriesService {
     @InjectRepository(Delivery)
     private readonly deliveriesRepository: Repository<Delivery>,
     @InjectRepository(Package)
-    private readonly packageRepository: Repository<Package>
+    private readonly packageRepository: Repository<Package>,
+    @InjectRepository(Route) private routeRepository: Repository<Route>
   ) {}
 
   async createDeliveryWithPackages(
@@ -60,7 +62,47 @@ export class DeliveriesService {
     return savedDelivery;
   }
 
+  /* Db Requests */
   async findAll() {
     return this.deliveriesRepository.find({ relations: ["customer"] });
+  }
+
+  async findAllPosted() {
+    // return this.deliveriesRepository.find({
+    //   where: {
+    //     announcement: {
+    //       status: "POSTED"
+    //     }
+    //   },
+    //   relations: ["customer", "deliveryAgent", "packages", "announcement"],
+    // });
+  }
+
+  async findOne(id: number) {
+    const delivery = await this.deliveriesRepository.findOne({
+      where: { id },
+      relations: ["customer", "deliveryAgent", "packages"],
+    });
+    if (!delivery) {
+      throw new HttpException("Delivery not found", HttpStatus.NOT_FOUND);
+    }
+    return delivery;
+  }
+
+  async update(id: number, updateData: Partial<Delivery>) {
+    const delivery = await this.deliveriesRepository.findOne({ where: { id } });
+    if (!delivery) {
+      throw new HttpException("Delivery not found", HttpStatus.NOT_FOUND);
+    }
+    Object.assign(delivery, updateData);
+    return this.deliveriesRepository.save(delivery);
+  }
+
+  async remove(id: number) {
+    const delivery = await this.deliveriesRepository.findOne({ where: { id } });
+    if (!delivery) {
+      throw new HttpException("Delivery not found", HttpStatus.NOT_FOUND);
+    }
+    return this.deliveriesRepository.remove(delivery);
   }
 }
