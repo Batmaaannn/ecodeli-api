@@ -1,7 +1,7 @@
 import { Announcement } from "src/modules/announcements/entities/announcement.entity";
 import { Appointment } from "src/modules/appointment/entities/appointment.entity";
 import { Rating } from "src/modules/ratings/entities/rating.entity";
-import { StorageBox } from "src/modules/storages/entities/storage-box.entity";
+import { CustomerStorageBox } from "src/modules/storages/entities/customer-storage-box.entity";
 import { User } from "src/modules/users/entities/user.entity";
 import { SubscriptionPlan } from "src/types/subscription-plan";
 import {
@@ -77,8 +77,8 @@ export class Customer {
   @OneToMany(() => Announcement, (announcement) => announcement.customer)
   announcements: Announcement[];
 
-  @OneToMany(() => StorageBox, (storageBox) => storageBox.customer)
-  storageBoxes: StorageBox[];
+  @OneToMany(() => CustomerStorageBox, (storageBox) => storageBox.customer)
+  storageBoxes: CustomerStorageBox[];
 
   @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
   created_at: Date;

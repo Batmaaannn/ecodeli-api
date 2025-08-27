@@ -6,7 +6,7 @@ import {
   JoinColumn,
 } from "typeorm";
 import { Delivery } from "./delivery.entity";
-import { StorageBox } from "src/modules/storages/entities/storage-box.entity";
+import { WarehouseStorage } from "src/modules/storages/entities/warehouse-storage.entity";
 
 @Entity({ name: "packages" })
 export class Package {
@@ -40,9 +40,9 @@ export class Package {
   @Column({ nullable: true })
   delivery_id: number;
 
-  @ManyToOne(() => StorageBox, (storageBox) => storageBox.packages)
-  @JoinColumn({ name: "storage_box_id" })
-  storageBox: StorageBox;
+  @ManyToOne(() => WarehouseStorage, (warehouse) => warehouse.packages)
+  @JoinColumn({ name: "warehouse_id" })
+  warehouse: WarehouseStorage;
   @Column({ nullable: true })
-  storage_box_id: number;
+  warehouse_id: number;
 }

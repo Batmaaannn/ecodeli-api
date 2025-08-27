@@ -6,8 +6,8 @@ import {
   Injectable,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, Between, MoreThanOrEqual } from "typeorm";
-import { CreateDeliveryRequestDto } from "./dto/create-delivery-request.dto";
+import { Repository, Between, MoreThanOrEqual, In } from "typeorm";
+import { UpdateDeliveryDto } from "./dto/update-delivery.dto";
 import { Delivery } from "./entities/delivery.entity";
 import { Package } from "./entities/package.entity";
 import { ObjectDto } from "../announcements/dto/create-announcement.dto";
@@ -76,6 +76,61 @@ export class DeliveriesService {
     }
 
     return savedDelivery;
+  }
+
+  async assignDeliveriesToAgent(
+    updateDeliveryDto: UpdateDeliveryDto[],
+    userId: number
+  ) {
+    const deliveryAgent =
+      await this.deliveryAgentService.findOneByIdWithAllRelations(userId);
+
+    if (!deliveryAgent) {
+      throw new HttpException("Delivery agent not found", HttpStatus.NOT_FOUND);
+    }
+
+    const deliveries = await this.findByIds(
+      updateDeliveryDto.map((dto) => dto.deliveryId)
+    );
+
+    const results = [];
+    for (const delivery of deliveries) {
+      if (delivery.delivery_agent_id) {
+        results.push({
+          deliveryId: delivery.id,
+          error: "Delivery is already assigned to another agent",
+        });
+        continue;
+      }
+
+      if (delivery.status !== DeliveryStatus.PENDING) {
+        results.push({
+          deliveryId: delivery.id,
+          error: "Delivery is not available for assignment",
+        });
+        continue;
+      }
+
+      if (delivery.announcement.status !== AnnouncementStatus.POSTED) {
+        results.push({
+          deliveryId: delivery.id,
+          error: "Announcement is no longer available",
+        });
+        continue;
+      }
+
+      delivery.delivery_agent_id = deliveryAgent.id;
+      delivery.status = DeliveryStatus.ASSIGNED;
+
+      await this.deliveriesRepository.save(delivery);
+
+      results.push({
+        deliveryId: delivery.id,
+        status: "assigned",
+      });
+    }
+
+    return results;
   }
 
   /* Db Requests */
@@ -148,78 +203,6 @@ export class DeliveriesService {
     }));
   }
 
-  /**
-   * Assign a delivery to a delivery agent
-   * @param deliveryId - The ID of the delivery to assign
-   * @param userId - The user ID of the delivery agent
-   */
-  async assignDeliveryToAgent(deliveryId: number, userId: number) {
-    // Get the delivery agent
-    const deliveryAgent =
-      await this.deliveryAgentService.findOneByIdWithAllRelations(userId);
-
-    if (!deliveryAgent) {
-      throw new HttpException("Delivery agent not found", HttpStatus.NOT_FOUND);
-    }
-
-    // Get the delivery
-    const delivery = await this.deliveriesRepository.findOne({
-      where: { id: deliveryId },
-      relations: ["announcement"],
-    });
-
-    if (!delivery) {
-      throw new HttpException("Delivery not found", HttpStatus.NOT_FOUND);
-    }
-
-    // Check if delivery is still available (not assigned and in pending status)
-    if (delivery.delivery_agent_id) {
-      throw new HttpException(
-        "Delivery is already assigned to another agent",
-        HttpStatus.CONFLICT
-      );
-    }
-
-    if (delivery.status !== DeliveryStatus.PENDING) {
-      throw new HttpException(
-        "Delivery is not available for assignment",
-        HttpStatus.CONFLICT
-      );
-    }
-
-    // Check if announcement is still posted
-    if (delivery.announcement.status !== AnnouncementStatus.POSTED) {
-      throw new HttpException(
-        "Announcement is no longer available",
-        HttpStatus.CONFLICT
-      );
-    }
-
-    // Assign the delivery to the agent
-    delivery.delivery_agent_id = deliveryAgent.id;
-    delivery.status = DeliveryStatus.ASSIGNED;
-
-    const updatedDelivery = await this.deliveriesRepository.save(delivery);
-
-    return {
-      message: "Delivery successfully assigned",
-      delivery: {
-        id: updatedDelivery.id,
-        trackingCode: updatedDelivery.tracking_code,
-        status: updatedDelivery.status,
-        assignedAt: new Date(),
-        announcement: {
-          id: delivery.announcement.id,
-          title: delivery.announcement.title,
-          departureCity: delivery.announcement.departure_city,
-          arrivalCity: delivery.announcement.arrival_city,
-          pickupDate: delivery.announcement.pickup_date,
-          price: delivery.announcement.price,
-        },
-      },
-    };
-  }
-
   async findOne(id: number) {
     const delivery = await this.deliveriesRepository.findOne({
       where: { id },
@@ -229,6 +212,13 @@ export class DeliveriesService {
       throw new HttpException("Delivery not found", HttpStatus.NOT_FOUND);
     }
     return delivery;
+  }
+
+  async findByIds(ids: number[]) {
+    return await this.deliveriesRepository.find({
+      where: { id: In(ids) },
+      relations: ["announcement"],
+    });
   }
 
   async update(id: number, updateData: Partial<Delivery>) {

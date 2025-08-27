@@ -25,6 +25,7 @@ import { PaymentsModule } from "./modules/payments/payments.module";
 import { AnnouncementsModule } from "./modules/announcements/announcements.module";
 import { ConfigModule } from "@nestjs/config";
 import { AdminModule } from "./modules/admin/admin.module";
+import { WarehousesModule } from "./modules/warehouses/warehouses.module";
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -74,6 +75,7 @@ import { AdminModule } from "./modules/admin/admin.module";
     PaymentsModule,
     AnnouncementsModule,
     AdminModule,
+    WarehousesModule,
   ],
   controllers: [AppController],
   providers: [
