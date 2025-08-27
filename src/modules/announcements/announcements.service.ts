@@ -152,8 +152,8 @@ export class AnnouncementsService {
     return await this.update(id, { status });
   }
 
-  async findOneByConditions(conditions: any): Promise<Announcement> {
-    return this.announcementRepository.findOne({
+  async findManyByConditions(conditions: any): Promise<Announcement[]> {
+    return this.announcementRepository.find({
       where: conditions,
       relations: ["customer", "deliveries"],
     });

@@ -10,26 +10,30 @@ import {
 import { DeliveriesService } from "./deliveries.service";
 import { Roles } from "../auth/decorator/roles.decorator";
 import { UserType } from "src/types/user";
+import { UsersService } from "../users/users.service";
 
 @Controller("deliveries")
 export class DeliveriesController {
-  constructor(private readonly deliveriesService: DeliveriesService) {}
+  constructor(
+    private readonly deliveriesService: DeliveriesService,
+    private readonly usersService: UsersService
+  ) {}
 
   @Get()
   @Roles(UserType.DELIVERY_AGENT)
   async fetchAvailableDeliveries(
     @Request() req,
     @Query("city") city?: string,
-    @Query("maxRadius") maxRadius?: number,
-    @Query("useProfile") useProfile?: boolean
+    @Query("maxRadius") maxRadius?: number
   ) {
     const { userId } = req.user;
 
+    const user = await this.usersService.findOneById(userId);
+
     return this.deliveriesService.findAvailableDeliveries(
-      userId,
+      user.delivery_agent_id,
       city,
-      maxRadius,
-      useProfile
+      maxRadius
     );
   }
 

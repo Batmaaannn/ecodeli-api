@@ -1,4 +1,10 @@
-import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
+import {
+  forwardRef,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, Between, MoreThanOrEqual } from "typeorm";
 import { CreateDeliveryRequestDto } from "./dto/create-delivery-request.dto";
@@ -77,102 +83,69 @@ export class DeliveriesService {
     return this.deliveriesRepository.find({ relations: ["customer"] });
   }
 
-  /**
-   * Find available deliveries for a delivery agent based on their preferences
-   * @param userId - The user ID of the delivery agent
-   * @param city - Optional city filter (overrides profile preference)
-   * @param maxRadius - Optional radius filter (overrides profile preference)
-   * @param useProfile - Whether to use delivery agent profile preferences (default: true)
-   */
-  async findAvailableDeliveries(
-    userId: number,
-    city?: string,
-    maxRadius?: number,
-    useProfile: boolean = true
-  ) {
-    // Get the delivery agent profile
-    // const deliveryAgent =
-    //   await this.deliveryAgentService.findOneByIdWithAllRelations(userId);
+  async findAvailableDeliveries(id: number, city?: string, maxRadius?: number) {
+    const deliveryAgent =
+      await this.deliveryAgentService.findOneByIdWithAllRelations(id);
 
-    // if (!deliveryAgent) {
-    //   throw new HttpException("Delivery agent not found", HttpStatus.NOT_FOUND);
-    // }
+    // Calculate date range (now to now + 7 days)
+    const now = new Date();
+    const sevenDaysFromNow = new Date();
+    sevenDaysFromNow.setDate(now.getDate() + 7);
 
-    // // Determine search parameters
-    // const searchCity =
-    //   city || (useProfile ? deliveryAgent.favorite_delivery_city : null);
-    // const searchRadius =
-    //   maxRadius || (useProfile ? deliveryAgent.max_radius_km : null);
+    // Build query conditions
+    const whereConditions: any = {
+      status: AnnouncementStatus.POSTED,
+      pickup_date: Between(now, sevenDaysFromNow),
+    };
 
-    // // Calculate date range (now to now + 7 days)
-    // const now = new Date();
-    // const sevenDaysFromNow = new Date();
-    // sevenDaysFromNow.setDate(now.getDate() + 7);
+    // Add city filter if provided
+    if (city) {
+      whereConditions.departure_city = city;
+    }
 
-    // // Build query conditions
-    // const whereConditions: any = {
-    //   status: AnnouncementStatus.POSTED,
-    //   pickup_date: Between(now, sevenDaysFromNow),
-    // };
+    // Find available announcements
+    const availableAnnouncements =
+      await this.announcementService.findManyByConditions(whereConditions);
 
-    // // Add city filter if provided
-    // if (searchCity) {
-    //   whereConditions.departure_city = searchCity;
-    // }
+    // Filter announcements that don't have assigned deliveries or have pending deliveries
+    const availableForDelivery = availableAnnouncements.filter(
+      (announcement) => {
+        // Check if all deliveries are still pending (not assigned to a delivery agent)
+        return announcement.deliveries.every(
+          (delivery) =>
+            delivery.status === DeliveryStatus.PENDING &&
+            !delivery.delivery_agent_id
+        );
+      }
+    );
 
-    // // Find available announcements
-    // const availableAnnouncements =
-    //   await this.announcementService.findOneByConditions(whereConditions);
+    // TODO: If radius filter is provided, we would need to implement distance calculation
+    // This would require geocoding or storing coordinates for cities
+    // For now, we'll return results based on city match only
 
-    // // Filter announcements that don't have assigned deliveries or have pending deliveries
-    // const availableForDelivery = availableAnnouncements.filter(
-    //   (announcement) => {
-    //     // Check if announcement has any deliveries
-    //     if (!announcement.deliveries || announcement.deliveries.length === 0) {
-    //       return true; // No deliveries yet, available
-    //     }
-
-    //     // Check if all deliveries are still pending (not assigned to a delivery agent)
-    //     return announcement.deliveries.some(
-    //       (delivery) =>
-    //         delivery.status === DeliveryStatus.PENDING &&
-    //         !delivery.delivery_agent_id
-    //     );
-    //   }
-    // );
-
-    // // If radius filter is provided, we would need to implement distance calculation
-    // // This would require geocoding or storing coordinates for cities
-    // // For now, we'll return results based on city match only
-
-    // // Format the response with relevant information
-    // return availableForDelivery.map((announcement) => ({
-    //   announcementId: announcement.id,
-    //   title: announcement.title,
-    //   description: announcement.description,
-    //   departureCity: announcement.departure_city,
-    //   arrivalCity: announcement.arrival_city,
-    //   price: announcement.price,
-    //   pickupDate: announcement.pickup_date,
-    //   deliveryDate: announcement.delivery_date,
-    //   urgent: announcement.urgent,
-    //   assurance: announcement.assurance,
-    //   pickupInstructions: announcement.pickup_instructions,
-    //   customer: {
-    //     firstName: announcement.customer.first_name,
-    //     lastName: announcement.customer.last_name,
-    //   },
-    //   deliveries: announcement.deliveries
-    //     .filter(
-    //       (d) => d.status === DeliveryStatus.PENDING && !d.delivery_agent_id
-    //     )
-    //     .map((delivery) => ({
-    //       id: delivery.id,
-    //       trackingCode: delivery.tracking_code,
-    //       status: delivery.status,
-    //       deliveryType: delivery.delivery_type,
-    //     })),
-    // }));
+    return availableForDelivery.map((announcement) => ({
+      announcementId: announcement.id,
+      title: announcement.title,
+      description: announcement.description,
+      departureCity: announcement.departure_city,
+      arrivalCity: announcement.arrival_city,
+      price: announcement.price,
+      pickupDate: announcement.pickup_date,
+      deliveryDate: announcement.delivery_date,
+      urgent: announcement.urgent,
+      assurance: announcement.assurance,
+      pickupInstructions: announcement.pickup_instructions,
+      customer: {
+        firstName: announcement.customer.first_name,
+        lastName: announcement.customer.last_name,
+      },
+      deliveries: announcement.deliveries.map((delivery) => ({
+        id: delivery.id,
+        trackingCode: delivery.tracking_code,
+        status: delivery.status,
+        deliveryType: delivery.delivery_type,
+      })),
+    }));
   }
 
   /**
