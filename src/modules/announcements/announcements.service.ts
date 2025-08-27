@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { forwardRef, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { LessThan, MoreThan, Repository } from "typeorm";
 import { Announcement } from "./entities/announcement.entity";
@@ -25,6 +25,7 @@ export class AnnouncementsService {
   constructor(
     @InjectRepository(Announcement)
     private announcementRepository: Repository<Announcement>,
+    @Inject(forwardRef(() => DeliveriesService))
     private readonly deliveriesService: DeliveriesService
   ) {}
 
@@ -108,8 +109,12 @@ export class AnnouncementsService {
   async findPastByCustomer(customerId: number): Promise<Announcement[]> {
     return await this.announcementRepository.find({
       where: [
-        { customer_id: customerId, delivery_date: LessThan(new Date()), status: AnnouncementStatus.CANCELLED },
-        { customer_id: customerId, status: AnnouncementStatus.DELIVERED }
+        {
+          customer_id: customerId,
+          delivery_date: LessThan(new Date()),
+          status: AnnouncementStatus.CANCELLED,
+        },
+        { customer_id: customerId, status: AnnouncementStatus.DELIVERED },
       ],
       relations: ["customer", "deliveries"],
       order: { created_at: "DESC" },
@@ -145,5 +150,12 @@ export class AnnouncementsService {
     status: AnnouncementStatus
   ): Promise<Announcement> {
     return await this.update(id, { status });
+  }
+
+  async findOneByConditions(conditions: any): Promise<Announcement> {
+    return this.announcementRepository.findOne({
+      where: conditions,
+      relations: ["customer", "deliveries"],
+    });
   }
 }

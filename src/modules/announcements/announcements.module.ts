@@ -14,5 +14,6 @@ import { DeliveriesModule } from "../deliveries/deliveries.module";
   ],
   providers: [AnnouncementsService],
   controllers: [AnnouncementsController],
+  exports: [AnnouncementsService],
 })
 export class AnnouncementsModule {}

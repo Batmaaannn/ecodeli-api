@@ -1,6 +1,6 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Repository, Between, MoreThanOrEqual } from "typeorm";
 import { CreateDeliveryRequestDto } from "./dto/create-delivery-request.dto";
 import { Delivery } from "./entities/delivery.entity";
 import { Package } from "./entities/package.entity";
@@ -10,6 +10,12 @@ import slugify from "slugify";
 import { convertToMulterFile } from "src/utils/file-storage/convert";
 import { processFile } from "src/utils/file-storage/s3";
 import { Route } from "./entities/route.entity";
+import { DeliveryAgent } from "../delivery-agents/entities/delivery-agents.entity";
+import { Announcement } from "../announcements/entities/announcement.entity";
+import { AnnouncementStatus } from "src/types/announcement";
+import { DeliveryStatus } from "src/types/delivery";
+import { DeliveryAgentsService } from "../delivery-agents/delivery-agents.service";
+import { AnnouncementsService } from "../announcements/announcements.service";
 
 @Injectable()
 export class DeliveriesService {
@@ -18,7 +24,11 @@ export class DeliveriesService {
     private readonly deliveriesRepository: Repository<Delivery>,
     @InjectRepository(Package)
     private readonly packageRepository: Repository<Package>,
-    @InjectRepository(Route) private routeRepository: Repository<Route>
+    @InjectRepository(Route)
+    private routeRepository: Repository<Route>,
+    private readonly deliveryAgentService: DeliveryAgentsService,
+    @Inject(forwardRef(() => AnnouncementsService))
+    private readonly announcementService: AnnouncementsService
   ) {}
 
   async createDeliveryWithPackages(
@@ -67,15 +77,174 @@ export class DeliveriesService {
     return this.deliveriesRepository.find({ relations: ["customer"] });
   }
 
-  async findAllPosted() {
-    // return this.deliveriesRepository.find({
-    //   where: {
-    //     announcement: {
-    //       status: "POSTED"
+  /**
+   * Find available deliveries for a delivery agent based on their preferences
+   * @param userId - The user ID of the delivery agent
+   * @param city - Optional city filter (overrides profile preference)
+   * @param maxRadius - Optional radius filter (overrides profile preference)
+   * @param useProfile - Whether to use delivery agent profile preferences (default: true)
+   */
+  async findAvailableDeliveries(
+    userId: number,
+    city?: string,
+    maxRadius?: number,
+    useProfile: boolean = true
+  ) {
+    // Get the delivery agent profile
+    // const deliveryAgent =
+    //   await this.deliveryAgentService.findOneByIdWithAllRelations(userId);
+
+    // if (!deliveryAgent) {
+    //   throw new HttpException("Delivery agent not found", HttpStatus.NOT_FOUND);
+    // }
+
+    // // Determine search parameters
+    // const searchCity =
+    //   city || (useProfile ? deliveryAgent.favorite_delivery_city : null);
+    // const searchRadius =
+    //   maxRadius || (useProfile ? deliveryAgent.max_radius_km : null);
+
+    // // Calculate date range (now to now + 7 days)
+    // const now = new Date();
+    // const sevenDaysFromNow = new Date();
+    // sevenDaysFromNow.setDate(now.getDate() + 7);
+
+    // // Build query conditions
+    // const whereConditions: any = {
+    //   status: AnnouncementStatus.POSTED,
+    //   pickup_date: Between(now, sevenDaysFromNow),
+    // };
+
+    // // Add city filter if provided
+    // if (searchCity) {
+    //   whereConditions.departure_city = searchCity;
+    // }
+
+    // // Find available announcements
+    // const availableAnnouncements =
+    //   await this.announcementService.findOneByConditions(whereConditions);
+
+    // // Filter announcements that don't have assigned deliveries or have pending deliveries
+    // const availableForDelivery = availableAnnouncements.filter(
+    //   (announcement) => {
+    //     // Check if announcement has any deliveries
+    //     if (!announcement.deliveries || announcement.deliveries.length === 0) {
+    //       return true; // No deliveries yet, available
     //     }
+
+    //     // Check if all deliveries are still pending (not assigned to a delivery agent)
+    //     return announcement.deliveries.some(
+    //       (delivery) =>
+    //         delivery.status === DeliveryStatus.PENDING &&
+    //         !delivery.delivery_agent_id
+    //     );
+    //   }
+    // );
+
+    // // If radius filter is provided, we would need to implement distance calculation
+    // // This would require geocoding or storing coordinates for cities
+    // // For now, we'll return results based on city match only
+
+    // // Format the response with relevant information
+    // return availableForDelivery.map((announcement) => ({
+    //   announcementId: announcement.id,
+    //   title: announcement.title,
+    //   description: announcement.description,
+    //   departureCity: announcement.departure_city,
+    //   arrivalCity: announcement.arrival_city,
+    //   price: announcement.price,
+    //   pickupDate: announcement.pickup_date,
+    //   deliveryDate: announcement.delivery_date,
+    //   urgent: announcement.urgent,
+    //   assurance: announcement.assurance,
+    //   pickupInstructions: announcement.pickup_instructions,
+    //   customer: {
+    //     firstName: announcement.customer.first_name,
+    //     lastName: announcement.customer.last_name,
     //   },
-    //   relations: ["customer", "deliveryAgent", "packages", "announcement"],
-    // });
+    //   deliveries: announcement.deliveries
+    //     .filter(
+    //       (d) => d.status === DeliveryStatus.PENDING && !d.delivery_agent_id
+    //     )
+    //     .map((delivery) => ({
+    //       id: delivery.id,
+    //       trackingCode: delivery.tracking_code,
+    //       status: delivery.status,
+    //       deliveryType: delivery.delivery_type,
+    //     })),
+    // }));
+  }
+
+  /**
+   * Assign a delivery to a delivery agent
+   * @param deliveryId - The ID of the delivery to assign
+   * @param userId - The user ID of the delivery agent
+   */
+  async assignDeliveryToAgent(deliveryId: number, userId: number) {
+    // Get the delivery agent
+    const deliveryAgent =
+      await this.deliveryAgentService.findOneByIdWithAllRelations(userId);
+
+    if (!deliveryAgent) {
+      throw new HttpException("Delivery agent not found", HttpStatus.NOT_FOUND);
+    }
+
+    // Get the delivery
+    const delivery = await this.deliveriesRepository.findOne({
+      where: { id: deliveryId },
+      relations: ["announcement"],
+    });
+
+    if (!delivery) {
+      throw new HttpException("Delivery not found", HttpStatus.NOT_FOUND);
+    }
+
+    // Check if delivery is still available (not assigned and in pending status)
+    if (delivery.delivery_agent_id) {
+      throw new HttpException(
+        "Delivery is already assigned to another agent",
+        HttpStatus.CONFLICT
+      );
+    }
+
+    if (delivery.status !== DeliveryStatus.PENDING) {
+      throw new HttpException(
+        "Delivery is not available for assignment",
+        HttpStatus.CONFLICT
+      );
+    }
+
+    // Check if announcement is still posted
+    if (delivery.announcement.status !== AnnouncementStatus.POSTED) {
+      throw new HttpException(
+        "Announcement is no longer available",
+        HttpStatus.CONFLICT
+      );
+    }
+
+    // Assign the delivery to the agent
+    delivery.delivery_agent_id = deliveryAgent.id;
+    delivery.status = DeliveryStatus.ASSIGNED;
+
+    const updatedDelivery = await this.deliveriesRepository.save(delivery);
+
+    return {
+      message: "Delivery successfully assigned",
+      delivery: {
+        id: updatedDelivery.id,
+        trackingCode: updatedDelivery.tracking_code,
+        status: updatedDelivery.status,
+        assignedAt: new Date(),
+        announcement: {
+          id: delivery.announcement.id,
+          title: delivery.announcement.title,
+          departureCity: delivery.announcement.departure_city,
+          arrivalCity: delivery.announcement.arrival_city,
+          pickupDate: delivery.announcement.pickup_date,
+          price: delivery.announcement.price,
+        },
+      },
+    };
   }
 
   async findOne(id: number) {
