@@ -4,6 +4,7 @@ import {
   HttpException,
   HttpStatus,
   Post,
+  Request,
   UploadedFiles,
   UseInterceptors,
 } from "@nestjs/common";
@@ -14,6 +15,7 @@ import { Public } from "../auth/decorator/public.decorator";
 import { FilesInterceptor } from "@nestjs/platform-express";
 import { isBlacklisted } from "src/utils/emails/email-blacklisted";
 import { CreateUserDeliveryAgentDto } from "./dto/create-user-delivery-agent.dto";
+import { UpdateUserDeliveryAgentDto } from "./dto/update-user-delivery-agent";
 
 @ApiTags("delivery-agents")
 @Controller("delivery-agents")
@@ -55,5 +57,18 @@ export class DeliveryAgentsController {
     });
   }
 
-  
+  @Post()
+  async updateDeliveryAgent(
+    @Request() req: any,
+    @Body() updateDeliveryAgentDto: UpdateUserDeliveryAgentDto
+  ) {
+    const { userId } = req.user;
+
+    const user = await this.usersService.findOneById(userId);
+
+    return this.deliveryAgentsService.updateDeliveryAgent(
+      user.delivery_agent_id,
+      updateDeliveryAgentDto
+    );
+  }
 }

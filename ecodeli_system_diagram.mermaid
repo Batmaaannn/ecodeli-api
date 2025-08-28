@@ -208,14 +208,49 @@ erDiagram
         string onesignal_id
     }
 
-    STORAGE_BOXES {
+    CUSTOMER_STORAGE_BOXES {
         int id PK
         int customer_id FK
-        string box_location "paris|marseille|lyon|lille|montpellier|rennes"
-        enum box_size "small|medium|large|xl"
-        boolean is_occupied
+        int warehouse_id FK
+        string box_location
+        enum box_size
         datetime rental_start
         datetime rental_end
+        decimal monthly_fee
+    }
+
+    WAREHOUSES {
+        int id PK
+        string label
+        decimal latitude
+        decimal longitude
+        string address
+        string postal_code
+        string city
+        string telephone
+        datetime created_at
+        datetime updated_at
+    }
+
+    WAREHOUSES_INVENTORY {
+        int id PK
+        int warehouse_id FK
+        string label
+        enum box_size
+        int total_quantity
+        int available_quantity
+        int reserved_quantity
+        datetime created_at
+        datetime updated_at
+    }
+
+    WAREHOUSE_STORAGE {
+        int id PK
+        int warehouse_id FK
+        string location "paris|marseille|lyon|lille|montpellier|rennes"
+        enum storage_type "temporary|long_term"
+        int capacity
+        boolean is_available
     }
 
     DOCUMENTS {
@@ -246,18 +281,21 @@ erDiagram
     
     CUSTOMERS ||--o{ ANNOUNCEMENTS : "posts"
     CUSTOMERS ||--o{ APPOINTMENTS : "books"
-    CUSTOMERS ||--o{ STORAGE_BOXES : "rents"
+    CUSTOMERS ||--o{ CUSTOMER_STORAGE_BOXES : "rents"
     
     ANNOUNCEMENTS ||--o{ DELIVERIES : "generates"
     DELIVERY_AGENTS ||--o{ DELIVERIES : "performs"
     DELIVERY_AGENTS ||--o{ ROUTES : "plans"
     
     DELIVERIES ||--o{ PACKAGES : "contains"
-    STORAGE_BOXES ||--o{ PACKAGES : "stores"
-    
+    PACKAGES }o--|| WAREHOUSE_STORAGE : "temporarily_stored_in"
     SERVICE_AGENTS ||--o{ SERVICE_AGENT_PRESTATIONS : "offers"
     PRESTATIONS ||--o{ SERVICE_AGENT_PRESTATIONS : "priced_by"
     SERVICE_AGENT_PRESTATIONS ||--o{ APPOINTMENTS : "fulfills"
+
+    WAREHOUSES ||--o{ WAREHOUSE_STORAGE : "has"
+    WAREHOUSES ||--o{ WAREHOUSES_INVENTORY : "manages"
+    CUSTOMER_STORAGE_BOXES }o--|| WAREHOUSES : "located_in"
     
     USERS ||--o{ PAYMENTS : "makes"
     USERS ||--o{ RATINGS : "gives"

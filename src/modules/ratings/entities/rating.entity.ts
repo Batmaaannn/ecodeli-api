@@ -37,6 +37,7 @@ export class Rating {
     onDelete: "CASCADE",
   })
   rater: User;
+  @Column()
   rater_id: number;
 
   @JoinColumn({ name: "rated_id" })
@@ -44,16 +45,19 @@ export class Rating {
     onDelete: "CASCADE",
   })
   rated: User;
+  @Column()
   rated_id: number;
 
   @ManyToOne(() => Delivery, (delivery) => delivery.ratings)
   @JoinColumn({ name: "delivery_id" })
   delivery: Delivery;
+  @Column()
   delivery_id: number;
 
   @ManyToOne(() => Appointment, (appointment) => appointment.ratings)
   @JoinColumn({ name: "appointment_id" })
   appointment: Appointment;
+  @Column()
   appointment_id: number;
 
   @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })

@@ -12,6 +12,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
+import { DeliveryAgentsSchedule } from "./delivery-agents-schedule.entity";
 
 @Entity({ name: "delivery_agents" })
 export class DeliveryAgent {
@@ -42,17 +43,31 @@ export class DeliveryAgent {
   @Column({ type: "enum", enum: VehiculeType, default: VehiculeType.VAN })
   vehicle_type: VehiculeType;
 
-  @Column({ nullable: true })
+  @Column()
   license_number: string;
 
   @Column({ type: "decimal", precision: 3, scale: 2, default: 0 })
   rating: number;
 
-  @Column({ default: false })
-  is_validated: boolean;
-
   @Column({ unique: true, nullable: true })
   nfc_card_id: string;
+
+  @Column({ default: false })
+  has_completed_profile: boolean;
+
+  @Column({ nullable: true })
+  favorite_delivery_city: string;
+
+  @Column({ nullable: true })
+  max_radius_km: number;
+
+  @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
+  created_at: Date;
+
+  @UpdateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
+  updated_at: Date;
+
+  // Relations
 
   @OneToMany(() => Delivery, (delivery) => delivery.delivery_agent)
   deliveries: Delivery[];
@@ -66,9 +81,6 @@ export class DeliveryAgent {
   @OneToMany(() => Route, (route) => route.delivery_agent)
   routes: Route[];
 
-  @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
-  created_at: Date;
-
-  @UpdateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
-  updated_at: Date;
+  @OneToMany(() => DeliveryAgentsSchedule, (schedule) => schedule.delivery_agent)
+  schedules: DeliveryAgentsSchedule[];
 }

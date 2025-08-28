@@ -66,7 +66,7 @@ export class User {
     nullable: true,
   })
   service_agent?: ServiceAgent;
-  @RelationId((user: User) => user.delivery_agent)
+  @RelationId((user: User) => user.service_agent)
   service_agent_id?: number;
 
   @OneToOne(() => Merchant, (merchant) => merchant.user, {

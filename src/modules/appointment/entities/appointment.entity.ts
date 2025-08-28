@@ -61,6 +61,7 @@ export class Appointment {
   @ManyToOne(() => ServiceAgentPrestation, (spp) => spp.appointments)
   @JoinColumn({ name: "service_agent_prestation_id" })
   serviceAgentPrestation: ServiceAgentPrestation;
+  @Column()
   service_agent_prestation_id: number;
 
   @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })

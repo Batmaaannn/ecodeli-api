@@ -12,7 +12,7 @@ import { Customer } from "src/modules/customers/entities/customer.entity";
 import { Rating } from "src/modules/ratings/entities/rating.entity";
 import { Package } from "./package.entity";
 import { DeliveryStatus, DeliveryType } from "src/types/delivery";
-import { Announcement } from "src/modules/announcements/entities/annoucement.entity";
+import { Announcement } from "src/modules/announcements/entities/announcement.entity";
 
 @Entity({ name: "deliveries" })
 export class Delivery {
@@ -32,7 +32,7 @@ export class Delivery {
   @Column({
     type: "enum",
     enum: DeliveryStatus,
-    default: DeliveryStatus.ASSIGNED,
+    default: DeliveryStatus.PENDING,
   })
   status: DeliveryStatus;
 
@@ -54,11 +54,13 @@ export class Delivery {
   @ManyToOne(() => DeliveryAgent, { nullable: true, onDelete: "SET NULL" })
   @JoinColumn({ name: "delivery_agent_id" })
   delivery_agent?: DeliveryAgent;
+  @Column({ nullable: true })
   delivery_agent_id: number;
 
   @ManyToOne(() => Announcement, (announcement) => announcement.deliveries)
   @JoinColumn({ name: "announcement_id" })
   announcement: Announcement;
+  @Column()
   announcement_id: number;
 
   @CreateDateColumn({ type: "timestamptz" })

@@ -6,15 +6,12 @@ import {
   JoinColumn,
 } from "typeorm";
 import { Delivery } from "./delivery.entity";
-import { StorageBox } from "src/modules/storages/entities/storage-box.entity";
+import { WarehouseStorage } from "src/modules/storages/entities/warehouse-storage.entity";
 
 @Entity({ name: "packages" })
 export class Package {
   @PrimaryGeneratedColumn()
   id: number;
-
-  @Column()
-  package_type: string;
 
   @Column({ type: "decimal", precision: 8, scale: 3 })
   weight: number; //kg
@@ -40,10 +37,12 @@ export class Package {
   @ManyToOne(() => Delivery, (delivery) => delivery.packages)
   @JoinColumn({ name: "delivery_id" })
   delivery: Delivery;
+  @Column({ nullable: true })
   delivery_id: number;
 
-  @ManyToOne(() => StorageBox, (storageBox) => storageBox.packages)
-  @JoinColumn({ name: "storage_box_id" })
-  storageBox: StorageBox;
-  storage_box_id: number;
+  @ManyToOne(() => WarehouseStorage, (warehouse) => warehouse.packages)
+  @JoinColumn({ name: "warehouse_id" })
+  warehouse: WarehouseStorage;
+  @Column({ nullable: true })
+  warehouse_id: number;
 }

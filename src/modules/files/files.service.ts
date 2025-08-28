@@ -3,7 +3,10 @@ import { File } from "./entities/file.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { In, Repository } from "typeorm";
 import slugify from "slugify";
-import { getFileSignedUrl, uploadFile } from "src/utils/file-storage/s3";
+import {
+  getFileSignedUrl,
+  processFile,
+} from "src/utils/file-storage/s3";
 import config from "src/config";
 import { FileTargetType } from "src/types/file";
 import { UpdateFileStatutRegistrationDto } from "./dto/update-file-statut-registration.dto";
@@ -43,7 +46,6 @@ export class FilesService {
       file.document_type = type;
       file.approval_user_id = userId;
 
-
       switch (status) {
         case Status.ACCEPTED:
           file.approval_date = new Date();
@@ -58,21 +60,6 @@ export class FilesService {
     }
 
     return;
-  }
-
-  async processFile(
-    path: string,
-    fileToUpload: Express.Multer.File,
-    id: string
-  ) {
-    const uploadedFilePath = await uploadFile(
-      fileToUpload,
-      path,
-      config.storage.bucket,
-      { id }
-    );
-
-    return getFileSignedUrl(uploadedFilePath, config.storage.bucket);
   }
 
   async createFile(data: {
@@ -94,7 +81,7 @@ export class FilesService {
       const fileFullPath = `${targetType}/${targetId}/${fileNameSlugified}`;
 
       try {
-        const presignedURL: string = await this.processFile(
+        const presignedURL: string = await processFile(
           fileFullPath,
           file,
           targetId.toString()

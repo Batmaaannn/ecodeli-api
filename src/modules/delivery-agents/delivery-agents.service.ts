@@ -14,12 +14,16 @@ import {
 } from "nestjs-typeorm-paginate";
 import { OptionsFilters } from "src/types/db-requests";
 import { File } from "../files/entities/file.entity";
+import { UpdateUserDeliveryAgentDto } from "./dto/update-user-delivery-agent";
+import { DeliveryAgentsSchedule } from "./entities/delivery-agents-schedule.entity";
 
 @Injectable()
 export class DeliveryAgentsService {
   constructor(
     @InjectRepository(DeliveryAgent)
     private readonly deliveryAgentsRepository: Repository<DeliveryAgent>,
+    @InjectRepository(DeliveryAgentsSchedule)
+    private readonly scheduleRepository: Repository<DeliveryAgentsSchedule>,
     private readonly usersService: UsersService,
     private readonly filesService: FilesService
   ) {}
@@ -98,6 +102,47 @@ export class DeliveryAgentsService {
       ...deliveryAgent,
       files: files || [],
     };
+  }
+
+  async updateDeliveryAgent(
+    id: number,
+    updateDeliveryAgentDto: Partial<UpdateUserDeliveryAgentDto>
+  ) {
+    const {
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      companyAddress,
+      companyCity,
+      vehiculeType,
+      schedule,
+    } = updateDeliveryAgentDto;
+
+    const deliveryAgentToUpdate = await this.findOneByIdWithAllRelations(id);
+    if (!deliveryAgentToUpdate) {
+      return null;
+    }
+    console.log(1);
+    await this.usersService.updateOneById(deliveryAgentToUpdate.user.id, {
+      email,
+    });
+    console.log(2);
+    await this.updateOneById(deliveryAgentToUpdate.id, {
+      first_name: firstName,
+      last_name: lastName,
+      phone_number: phoneNumber,
+      company_address: companyAddress,
+      company_city: companyCity,
+      vehicle_type: vehiculeType,
+    });
+    console.log(3);
+
+    if (schedule) {
+      await this.upsertSchedule(deliveryAgentToUpdate.id, schedule);
+    }
+    console.log(4);
+    return this.findOneByIdWithAllRelations(deliveryAgentToUpdate.id);
   }
 
   /* Db requests */
@@ -185,5 +230,53 @@ export class DeliveryAgentsService {
     }
 
     return await paginate<DeliveryAgent>(queryBuilder, optionsPaginate);
+  }
+
+  private async upsertSchedule(deliveryAgentId: number, schedule: any) {
+    const daysMap = {
+      monday: 1,
+      tuesday: 2,
+      wednesday: 3,
+      thursday: 4,
+      friday: 5,
+      saturday: 6,
+      sunday: 0,
+    };
+
+    for (const [dayName, dayNumber] of Object.entries(daysMap)) {
+      const daySchedule = schedule[dayName];
+      if (!daySchedule) continue;
+
+      const existingSchedule = await this.scheduleRepository.findOne({
+        where: {
+          delivery_agent_id: deliveryAgentId,
+          day: dayNumber,
+        },
+      });
+
+      const scheduleData = {
+        delivery_agent_id: deliveryAgentId,
+        day: dayNumber,
+        full_day: daySchedule.isWorking,
+        morning_start: daySchedule.morning?.isActive
+          ? daySchedule.morning.start
+          : "08:30",
+        morning_end: daySchedule.morning?.isActive
+          ? daySchedule.morning.end
+          : "13:00",
+        afternoon_start: daySchedule.afternoon?.isActive
+          ? daySchedule.afternoon.start
+          : "13:00",
+        afternoon_end: daySchedule.afternoon?.isActive
+          ? daySchedule.afternoon.end
+          : "17:30",
+      };
+
+      if (existingSchedule) {
+        await this.scheduleRepository.update(existingSchedule.id, scheduleData);
+      } else {
+        await this.scheduleRepository.save(scheduleData);
+      }
+    }
   }
 }

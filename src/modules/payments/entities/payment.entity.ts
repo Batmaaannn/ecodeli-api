@@ -43,5 +43,6 @@ export class Payment {
   @ManyToOne(() => User, (user) => user.payments)
   @JoinColumn({ name: "user_id" })
   user: User;
+  @Column()
   user_id: number;
 }

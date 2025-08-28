@@ -1,45 +1,120 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty } from "class-validator";
+import { Type } from "class-transformer";
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  Min,
+  ValidateNested,
+} from "class-validator";
+import { FileSystemStoredFile, HasMimeType, IsFile } from "nestjs-form-data";
 
 export class CreateAnnouncementDto {
-    @ApiProperty()
-    @IsNotEmpty()
-    title: string;
+  @ApiProperty()
+  @IsNotEmpty()
+  title: string;
 
-    @ApiProperty()
-    @IsNotEmpty()
-    description: string;
+  @ApiProperty()
+  @IsNotEmpty()
+  description: string;
 
-    @ApiProperty()
-    @IsNotEmpty()
-    departure_city: string;
+  @ApiProperty()
+  @IsNotEmpty()
+  departureCity: string;
 
-    @ApiProperty()
-    @IsNotEmpty()
-    arrival_city: string;
+  @ApiProperty()
+  @IsNotEmpty()
+  arrivalCity: string;
 
-    @ApiProperty()
-    @IsNotEmpty()
-    price: number;
+  @ApiProperty()
+  @IsNotEmpty()
+  @Type(() => Number)
+  price: number;
 
-    @ApiProperty()
-    @IsNotEmpty()
-    pickup_date: Date;
+  @ApiProperty()
+  @IsNotEmpty()
+  @Type(() => Date)
+  pickupDate: Date;
 
-    @ApiProperty()
-    @IsNotEmpty()
-    delivery_date: Date;
+  @ApiProperty()
+  @IsNotEmpty()
+  @Type(() => Date)
+  deliveryDate: Date;
 
-    @ApiProperty({ required: false })
-    assurance?: boolean;
+  @ApiProperty({ required: false })
+  @IsBoolean()
+  @Type(() => Boolean)
+  assurance?: boolean;
 
-    @ApiProperty({ required: false })
-    urgent?: boolean;
+  @ApiProperty({ required: false })
+  @IsBoolean()
+  @Type(() => Boolean)
+  urgent?: boolean;
 
-    @ApiProperty({ required: false })
-    pickup_instructions?: string;
+  @ApiProperty({ required: false })
+  pickupInstructions?: string;
 
-    @ApiProperty()
-    @IsNotEmpty()
-    customer_id: number;
+  @ApiProperty()
+  @IsNotEmpty()
+  @ValidateNested({ each: true })
+  @Type(() => ObjectDto)
+  objects: ObjectDto[];
+}
+
+export class ObjectDto {
+  @ApiProperty()
+  @IsNotEmpty()
+  label: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  weight: number;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  quantity: number;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @Min(0)
+  length: number;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @Min(0)
+  width: number;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @Min(0)
+  height: number;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @Min(0)
+  value: number;
+
+  @IsFile()
+  @HasMimeType(["image/jpeg", "image/png"], { each: true })
+  photo: FileSystemStoredFile;
+
+  @ApiProperty()
+  @IsBoolean()
+  @Type(() => Boolean)
+  fragile: boolean;
 }

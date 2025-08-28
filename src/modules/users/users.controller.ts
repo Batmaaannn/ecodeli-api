@@ -12,6 +12,6 @@ export class UsersController {
   async getUser(@Request() req: any) {
     const { userId } = req.user;
 
-    return this.usersService.getUser(userId);
+    return this.usersService.getMyUser(userId);
   }
 }

@@ -49,6 +49,7 @@ export class ServiceAgentPrestation {
   )
   @JoinColumn({ name: "service_agent_id" })
   service_agent: ServiceAgent;
+  @Column()
   service_agent_id: number;
 
   @ManyToOne(
@@ -57,6 +58,7 @@ export class ServiceAgentPrestation {
   )
   @JoinColumn({ name: "prestation_id" })
   prestation: Prestation;
+  @Column()
   prestation_id: number;
 
   @OneToMany(() => Appointment, (appointment) => appointment.service_agent)
