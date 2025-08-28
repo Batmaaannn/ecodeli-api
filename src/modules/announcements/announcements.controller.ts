@@ -20,10 +20,14 @@ import { CreateAnnouncementDto } from "./dto/create-announcement.dto";
 import { FormDataRequest } from "nestjs-form-data";
 import { Roles } from "../auth/decorator/roles.decorator";
 import { UserType } from "src/types/user";
+import { UsersService } from "../users/users.service";
 
 @Controller("announcements")
 export class AnnouncementsController {
-  constructor(private readonly announcementsService: AnnouncementsService) {}
+  constructor(
+    private readonly announcementsService: AnnouncementsService,
+    private readonly usersService: UsersService
+  ) {}
 
   @Post()
   @Roles(UserType.CUSTOMER)
@@ -44,18 +48,22 @@ export class AnnouncementsController {
 
   @Get("customer")
   @Roles(UserType.CUSTOMER)
-  findFuturesAnnouncementsByCustomer(@Request() req) {
+  async findFuturesAnnouncementsByCustomer(@Request() req) {
     const { userId } = req.user;
 
-    return this.announcementsService.findFuturesByCustomer(userId);
+    const user = await this.usersService.findOneById(userId);
+
+    return this.announcementsService.findFuturesByCustomer(user.customer_id);
   }
 
   @Get("customer/past")
   @Roles(UserType.CUSTOMER)
-  findPastAnnouncementsByCustomer(@Request() req) {
+  async findPastAnnouncementsByCustomer(@Request() req) {
     const { userId } = req.user;
 
-    return this.announcementsService.findPastByCustomer(userId);
+    const user = await this.usersService.findOneById(userId);
+
+    return this.announcementsService.findPastByCustomer(user.customer_id);
   }
 
   @Get(":id")

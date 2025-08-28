@@ -12,6 +12,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
+import { DeliveryAgentsSchedule } from "./delivery-agents-schedule.entity";
 
 @Entity({ name: "delivery_agents" })
 export class DeliveryAgent {
@@ -60,6 +61,12 @@ export class DeliveryAgent {
   @Column({ nullable: true })
   max_radius_km: number;
 
+  @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
+  created_at: Date;
+
+  @UpdateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
+  updated_at: Date;
+
   // Relations
 
   @OneToMany(() => Delivery, (delivery) => delivery.delivery_agent)
@@ -74,9 +81,6 @@ export class DeliveryAgent {
   @OneToMany(() => Route, (route) => route.delivery_agent)
   routes: Route[];
 
-  @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
-  created_at: Date;
-
-  @UpdateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
-  updated_at: Date;
+  @OneToMany(() => DeliveryAgentsSchedule, (schedule) => schedule.delivery_agent)
+  schedules: DeliveryAgentsSchedule[];
 }
