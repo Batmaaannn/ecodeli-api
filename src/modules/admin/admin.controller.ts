@@ -88,6 +88,48 @@ export class AdminController {
     return this.usersService.rejectUserRequest(id);
   }
 
+  @Get('service-agents/:id')
+async getServiceAgentById(@Param('id') id: number) {
+  return this.adminService.getServiceAgentById(id);
+}
+
+@Patch('service-agents/:id/prestations')
+async updateServiceAgentPrestations(
+  @Param('id') serviceAgentId: number,
+  @Body() body: { 
+    prestations: Array<{
+      id: number;
+      applied_price: number;
+      is_available: boolean;
+      price_status: string;
+      ecodeli_comment: string;
+    }> 
+  }
+) {
+  return this.adminService.updateServiceAgentPrestations(serviceAgentId, body.prestations);
+}
+
+@Post('service-agents/:id/prestations')
+async addServiceAgentPrestation(
+  @Param('id') serviceAgentId: number,
+  @Body() body: { prestationId: number; requested_price: number }
+) {
+  return this.adminService.addServiceAgentPrestation(serviceAgentId, body);
+}
+
+@Get('prestations')
+async getPrestations() {
+  return this.adminService.getAllPrestations();
+}
+
+@Patch('prestations/:id')
+async updatePrestationStatus(
+  @Param('id') prestationId: number,
+  @Body() body: { is_active: boolean }
+) {
+  return this.adminService.updatePrestationStatus(prestationId, body.is_active);
+}
+
   //   // ✅ LISTE DES SERVICE AGENTS EN ATTENTE
   //   @Get("service-agents")
   //   async getPendingServiceAgents(
