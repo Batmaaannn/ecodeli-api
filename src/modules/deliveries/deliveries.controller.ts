@@ -9,12 +9,14 @@ import {
   Body,
   HttpStatus,
   HttpException,
+  Delete,
 } from "@nestjs/common";
 import { DeliveriesService } from "./deliveries.service";
 import { Roles } from "../auth/decorator/roles.decorator";
 import { UserType } from "src/types/user";
 import { UsersService } from "../users/users.service";
 import { UpdateDeliveryDto } from "./dto/update-delivery.dto";
+import { CreateRouteDto } from "./dto/create-route.dto";
 
 @Controller("deliveries")
 export class DeliveriesController {
@@ -67,5 +69,51 @@ export class DeliveriesController {
       updateDeliveryDto,
       user.delivery_agent_id
     );
+  }
+
+  @Get("trips")
+  @Roles(UserType.DELIVERY_AGENT)
+  async getRoutes(@Request() req) {
+    const { userId } = req.user;
+
+    const user = await this.usersService.findOneById(userId);
+    if (!user.delivery_agent_id) {
+      throw new HttpException(
+        "User is not a delivery agent",
+        HttpStatus.FORBIDDEN
+      );
+    }
+
+    return this.deliveriesService.getRoutesByAgentId(
+      user.delivery_agent_id
+    );
+  }
+
+  @Post("route")
+  @Roles(UserType.DELIVERY_AGENT)
+  async createRoute(@Request() req, @Body() createRouteDto: CreateRouteDto) {
+    const { userId } = req.user;
+
+    const user = await this.usersService.findOneById(userId);
+    if (!user.delivery_agent_id) {
+      throw new HttpException(
+        "User is not a delivery agent",
+        HttpStatus.FORBIDDEN
+      );
+    }
+
+    return this.deliveriesService.createRoute(
+      createRouteDto,
+      user.delivery_agent_id
+    );
+  }
+
+  @Delete("route/:id")
+  @Roles(UserType.DELIVERY_AGENT)
+  async deleteRoute(
+    @Request() req,
+    @Param("id", ParseIntPipe) routeId: number
+  ) {
+    return this.deliveriesService.deleteRouteById(routeId);
   }
 }

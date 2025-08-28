@@ -65,7 +65,7 @@ export class DeliveryAgentsController {
     const { userId } = req.user;
 
     const user = await this.usersService.findOneById(userId);
-
+    console.log(user);
     return this.deliveryAgentsService.updateDeliveryAgent(
       user.delivery_agent_id,
       updateDeliveryAgentDto

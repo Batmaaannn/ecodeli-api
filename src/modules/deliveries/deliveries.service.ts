@@ -22,6 +22,7 @@ import { AnnouncementStatus } from "src/types/announcement";
 import { DeliveryStatus } from "src/types/delivery";
 import { DeliveryAgentsService } from "../delivery-agents/delivery-agents.service";
 import { AnnouncementsService } from "../announcements/announcements.service";
+import { CreateRouteDto } from "./dto/create-route.dto";
 
 @Injectable()
 export class DeliveriesService {
@@ -133,6 +134,47 @@ export class DeliveriesService {
     return results;
   }
 
+  async getRoutesByAgentId(id: number) {
+    return this.findRoutesByAgentId(id);
+  }
+
+  async createRoute(createRouteDto: CreateRouteDto, userId: number) {
+    const {
+      departureCity,
+      arrivalCity,
+      departureDate,
+      arrivalDate,
+      maxPackages,
+    } = createRouteDto;
+
+    const deliveryAgent =
+      await this.deliveryAgentService.findOneByIdWithAllRelations(userId);
+
+    if (!deliveryAgent) {
+      throw new HttpException("Delivery agent not found", HttpStatus.NOT_FOUND);
+    }
+
+    const route = this.routeRepository.create({
+      departure_city: departureCity,
+      arrival_city: arrivalCity,
+      departure_date: departureDate,
+      arrival_date: arrivalDate,
+      max_packages: maxPackages,
+      delivery_agent_id: deliveryAgent.id,
+    });
+
+    return this.routeRepository.save(route);
+  }
+
+  async deleteRouteById(id: number) {
+    const route = await this.findOneRoute(id);
+    if (!route) {
+      throw new HttpException("Route not found", HttpStatus.NOT_FOUND);
+    }
+
+    return this.routeRepository.remove(route);
+  }
+
   /* Db Requests */
   async findAll() {
     return this.deliveriesRepository.find({ relations: ["customer"] });
@@ -204,20 +246,30 @@ export class DeliveriesService {
   }
 
   async findOne(id: number) {
-    const delivery = await this.deliveriesRepository.findOne({
+    return await this.deliveriesRepository.findOne({
       where: { id },
       relations: ["customer", "deliveryAgent", "packages"],
     });
-    if (!delivery) {
-      throw new HttpException("Delivery not found", HttpStatus.NOT_FOUND);
-    }
-    return delivery;
+  }
+
+  async findOneRoute(id: number) {
+    return await this.routeRepository.findOne({
+      where: { id },
+    });
   }
 
   async findByIds(ids: number[]) {
     return await this.deliveriesRepository.find({
       where: { id: In(ids) },
       relations: ["announcement"],
+    });
+  }
+
+  async findRoutesByAgentId(id: number) {
+    return this.routeRepository.find({
+      where: {
+        delivery_agent_id: id,
+      },
     });
   }
 
@@ -231,10 +283,11 @@ export class DeliveriesService {
   }
 
   async remove(id: number) {
-    const delivery = await this.deliveriesRepository.findOne({ where: { id } });
+    const delivery = await this.findOne(id);
     if (!delivery) {
       throw new HttpException("Delivery not found", HttpStatus.NOT_FOUND);
     }
+
     return this.deliveriesRepository.remove(delivery);
   }
 }

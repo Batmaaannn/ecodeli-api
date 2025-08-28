@@ -13,9 +13,6 @@ export class Route {
   id: number;
 
   @Column()
-  deliverer_id: number;
-
-  @Column()
   departure_city: string;
 
   @Column()
