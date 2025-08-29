@@ -90,12 +90,11 @@ export class DeliveriesService {
     if (!deliveryAgent) {
       throw new HttpException("Delivery agent not found", HttpStatus.NOT_FOUND);
     }
-  
+
     const deliveries = await this.deliveriesRepository.find({
       where: { id: In(updateDeliveryDto.map((dto) => dto.deliveryId)) },
       relations: ["announcement", "packages"],
     });
-
 
     const results = [];
 
@@ -133,7 +132,6 @@ export class DeliveriesService {
         });
         continue;
       }
-
 
       // Handle partial delivery - create a new delivery and update original
       if (dto.type === DeliveryType.PARTIAL && dto.intermediateCity) {
@@ -203,7 +201,8 @@ export class DeliveriesService {
   }
 
   async getDelivery(id: number) {
-    const delivery = await this.findOneByAnnouncementId(id);
+    const delivery = await this.findOne(id);
+
     if (!delivery)
       return new HttpException("Delivery not found", HttpStatus.NOT_FOUND);
 
@@ -239,6 +238,137 @@ export class DeliveriesService {
       relations: ["announcement", "ratings", "packages"],
     });
     return pastDeliveries;
+  }
+
+  async findActiveDeliveries(id: number) {
+    const activeDeliveries = await this.deliveriesRepository.find({
+      where: {
+        delivery_agent_id: id,
+        status: In([
+          DeliveryStatus.ASSIGNED,
+          DeliveryStatus.PICKED_UP,
+          DeliveryStatus.IN_TRANSIT,
+        ]),
+      },
+      relations: ["announcement", "packages"],
+      order: {
+        created_at: "DESC",
+      },
+    });
+    return activeDeliveries;
+  }
+
+  async getDashboardStats(agentId: number) {
+    // Count active deliveries
+    const activeDeliveriesCount = await this.deliveriesRepository.count({
+      where: {
+        delivery_agent_id: agentId,
+        status: In([
+          DeliveryStatus.ASSIGNED,
+          DeliveryStatus.PICKED_UP,
+          DeliveryStatus.IN_TRANSIT,
+        ]),
+      },
+    });
+
+    // Count completed deliveries
+    const completedDeliveriesCount = await this.deliveriesRepository.count({
+      where: {
+        delivery_agent_id: agentId,
+        status: DeliveryStatus.DELIVERED,
+      },
+    });
+
+    // Calculate average rating
+    const deliveriesWithRatings = await this.deliveriesRepository.find({
+      where: {
+        delivery_agent_id: agentId,
+        status: DeliveryStatus.DELIVERED,
+      },
+      relations: ["ratings"],
+    });
+
+    let totalRating = 0;
+    let totalReviews = 0;
+
+    deliveriesWithRatings.forEach((delivery) => {
+      if (delivery.ratings && delivery.ratings.length > 0) {
+        delivery.ratings.forEach((rating) => {
+          totalRating += rating.rating;
+          totalReviews++;
+        });
+      }
+    });
+
+    const averageRating = totalReviews > 0 ? totalRating / totalReviews : 0;
+
+    // Calculate monthly earnings (mock calculation - you'll need to implement based on your pricing model)
+    const currentMonth = new Date();
+    const firstDayOfMonth = new Date(
+      currentMonth.getFullYear(),
+      currentMonth.getMonth(),
+      1
+    );
+
+    const monthlyDeliveries = await this.deliveriesRepository.find({
+      where: {
+        delivery_agent_id: agentId,
+        status: DeliveryStatus.DELIVERED,
+        delivery_time: Between(firstDayOfMonth, new Date()),
+      },
+      relations: ["announcement"],
+    });
+
+    const monthlyEarnings = monthlyDeliveries.reduce((total, delivery) => {
+      // Assume 70% of announcement price goes to delivery agent
+      return total + (delivery.announcement?.price * 0.7 || 0);
+    }, 0);
+
+    return {
+      activeDeliveries: activeDeliveriesCount,
+      completedDeliveries: completedDeliveriesCount,
+      averageRating: Math.round(averageRating * 10) / 10,
+      monthlyEarnings: Math.round(monthlyEarnings),
+    };
+  }
+
+  async getRecentReviews(agentId: number) {
+    const deliveriesWithReviews = await this.deliveriesRepository.find({
+      where: {
+        delivery_agent_id: agentId,
+        status: DeliveryStatus.DELIVERED,
+      },
+      relations: ["ratings"],
+      order: {
+        delivery_time: "DESC",
+      },
+      take: 10,
+    });
+
+    const reviews = [];
+
+    deliveriesWithReviews.forEach((delivery) => {
+      if (delivery.ratings && delivery.ratings.length > 0) {
+        delivery.ratings.forEach((rating) => {
+          reviews.push({
+            id: rating.id,
+            score: rating.rating,
+            comment: rating.comment,
+            created_at: rating.created_at,
+            deliveryId: delivery.id,
+            trackingCode: delivery.tracking_code,
+          });
+        });
+      }
+    });
+
+    // Sort by creation date and limit to 5 most recent
+    return reviews
+      .sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      )
+      .slice(0, 5);
   }
 
   // Routes
@@ -283,35 +413,80 @@ export class DeliveriesService {
     return this.routeRepository.remove(route);
   }
 
+  async updateDeliveryStatus(deliveryId: number) {
+    const delivery = await this.deliveriesRepository.findOne({
+      where: { id: deliveryId },
+      relations: ["announcement"],
+    });
+
+    if (!delivery) {
+      throw new HttpException("Delivery not found", HttpStatus.NOT_FOUND);
+    }
+
+    if (delivery.status === DeliveryStatus.ASSIGNED) {
+      delivery.status = DeliveryStatus.PICKED_UP;
+      delivery.pickup_time = new Date();
+      return this.deliveriesRepository.save(delivery);
+    } else if (delivery.status === DeliveryStatus.PICKED_UP) {
+      delivery.status = DeliveryStatus.IN_TRANSIT;
+      
+      // Update announcement status to IN_PROGRESS
+      if (delivery.announcement) {
+        await this.announcementService.update(delivery.announcement.id, {
+          status: AnnouncementStatus.IN_PROGRESS,
+        });
+      }
+      
+      return this.deliveriesRepository.save(delivery);
+    } else if (delivery.status === DeliveryStatus.IN_TRANSIT) {
+      delivery.status = DeliveryStatus.DELIVERED;
+      delivery.delivery_time = new Date();
+
+      // Update announcement status to DELIVERED
+      if (delivery.announcement) {
+        await this.announcementService.update(delivery.announcement.id, {
+          status: AnnouncementStatus.DELIVERED,
+        });
+      }
+
+      return this.deliveriesRepository.save(delivery);
+    }
+  }
+
   /* Db Requests */
   async findAll() {
     return this.deliveriesRepository.find({ relations: ["customer"] });
   }
 
-  async findAvailableDeliveries(agentId: number, city?: string, maxRadius?: number) {
+  async findAvailableDeliveries(
+    agentId: number,
+    city?: string,
+    maxRadius?: number
+  ) {
+    // Note: agentId and maxRadius parameters are available for future filtering logic
     const now = new Date();
     const sevenDaysFromNow = new Date();
     sevenDaysFromNow.setDate(now.getDate() + 7);
 
     // Build the query with delivery as base entity and join announcement
     const queryBuilder = this.deliveriesRepository
-      .createQueryBuilder('delivery')
-      .leftJoinAndSelect('delivery.announcement', 'announcement')
-      .leftJoinAndSelect('delivery.packages', 'packages')
-      .where('delivery.status = :status', { status: DeliveryStatus.PENDING })
-      .andWhere('delivery.delivery_agent_id IS NULL')
-      .andWhere('announcement.status = :announcementStatus', { 
-        announcementStatus: AnnouncementStatus.POSTED 
+      .createQueryBuilder("delivery")
+      .leftJoinAndSelect("delivery.announcement", "announcement")
+      .leftJoinAndSelect("delivery.packages", "packages")
+      .where("delivery.status = :status", { status: DeliveryStatus.PENDING })
+      .andWhere("delivery.delivery_agent_id IS NULL")
+      .andWhere("announcement.status = :announcementStatus", {
+        announcementStatus: AnnouncementStatus.POSTED,
       })
-      .andWhere('announcement.pickup_date BETWEEN :now AND :sevenDaysFromNow', {
+      .andWhere("announcement.pickup_date BETWEEN :now AND :sevenDaysFromNow", {
         now,
-        sevenDaysFromNow
+        sevenDaysFromNow,
       });
 
     // Add city filter if provided
     if (city) {
-      queryBuilder.andWhere('announcement.departure_city ILIKE :city', { 
-        city: `%${city}%` 
+      queryBuilder.andWhere("announcement.departure_city ILIKE :city", {
+        city: `%${city}%`,
       });
     }
 

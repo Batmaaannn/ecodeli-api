@@ -10,6 +10,7 @@ import {
   HttpStatus,
   HttpException,
   Delete,
+  Patch,
 } from "@nestjs/common";
 import { DeliveriesService } from "./deliveries.service";
 import { Roles } from "../auth/decorator/roles.decorator";
@@ -52,8 +53,8 @@ export class DeliveriesController {
   }
 
   @Get("details/:id")
-  async getDelivery(@Param("id", ParseIntPipe) announcementId: number) {
-    return this.deliveriesService.getDelivery(announcementId);
+  async getDelivery(@Param("id", ParseIntPipe) deliveryId: number) {
+    return this.deliveriesService.getDelivery(deliveryId);
   }
 
   @Post("assign")
@@ -90,6 +91,56 @@ export class DeliveriesController {
     }
 
     return this.deliveriesService.findPastDeliveries(user.delivery_agent_id);
+  }
+
+  @Get("active")
+  async fetchActiveDeliveries(@Request() req) {
+    const { userId } = req.user;
+
+    const user = await this.usersService.findOneById(userId);
+    if (!user.delivery_agent_id) {
+      throw new HttpException(
+        "User is not a delivery agent",
+        HttpStatus.FORBIDDEN
+      );
+    }
+
+    return this.deliveriesService.findActiveDeliveries(user.delivery_agent_id);
+  }
+
+  @Get("dashboard/stats")
+  async getDashboardStats(@Request() req) {
+    const { userId } = req.user;
+
+    const user = await this.usersService.findOneById(userId);
+    if (!user.delivery_agent_id) {
+      throw new HttpException(
+        "User is not a delivery agent",
+        HttpStatus.FORBIDDEN
+      );
+    }
+
+    return this.deliveriesService.getDashboardStats(user.delivery_agent_id);
+  }
+
+  @Get("dashboard/reviews")
+  async getRecentReviews(@Request() req) {
+    const { userId } = req.user;
+
+    const user = await this.usersService.findOneById(userId);
+    if (!user.delivery_agent_id) {
+      throw new HttpException(
+        "User is not a delivery agent",
+        HttpStatus.FORBIDDEN
+      );
+    }
+
+    return this.deliveriesService.getRecentReviews(user.delivery_agent_id);
+  }
+
+  @Patch("status/:id")
+  async updateDeliveryStatus(@Param("id", ParseIntPipe) deliveryId: number) {
+    return this.deliveriesService.updateDeliveryStatus(deliveryId);
   }
 
   // Routes
