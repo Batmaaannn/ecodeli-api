@@ -52,14 +52,14 @@ export class DeliveriesController {
   }
 
   @Get("details/:id")
-  async getDelivery(@Param("id", ParseIntPipe) id: number) {
-    return this.deliveriesService.getDelivery(id);
+  async getDelivery(@Param("id", ParseIntPipe) announcementId: number) {
+    return this.deliveriesService.getDelivery(announcementId);
   }
 
   @Post("assign")
   async assignDeliveriesToAgent(
     @Request() req: any,
-    @Body("deliveryIds") updateDeliveryDto: UpdateDeliveryDto[]
+    @Body() updateDeliveryDto: UpdateDeliveryDto[]
   ) {
     const { userId } = req.user;
 
@@ -75,6 +75,21 @@ export class DeliveriesController {
       updateDeliveryDto,
       user.delivery_agent_id
     );
+  }
+
+  @Get("past")
+  async fetchPastDeliveries(@Request() req) {
+    const { userId } = req.user;
+
+    const user = await this.usersService.findOneById(userId);
+    if (!user.delivery_agent_id) {
+      throw new HttpException(
+        "User is not a delivery agent",
+        HttpStatus.FORBIDDEN
+      );
+    }
+
+    return this.deliveriesService.findPastDeliveries(user.delivery_agent_id);
   }
 
   // Routes

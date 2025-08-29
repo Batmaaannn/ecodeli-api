@@ -45,6 +45,11 @@ export class Delivery {
   @Column({ nullable: true })
   delivery_code: string;
 
+  @Column({ nullable: true })
+  intermediate_city: string;
+
+  // Relations
+
   @OneToMany(() => Package, (packageEntity) => packageEntity.delivery)
   packages: Package[];
 
