@@ -6,7 +6,7 @@ import {
   Injectable,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, Between, MoreThanOrEqual, In } from "typeorm";
+import { Repository, Between, In } from "typeorm";
 import { UpdateDeliveryDto } from "./dto/update-delivery.dto";
 import { Delivery } from "./entities/delivery.entity";
 import { Package } from "./entities/package.entity";
@@ -16,8 +16,6 @@ import slugify from "slugify";
 import { convertToMulterFile } from "src/utils/file-storage/convert";
 import { processFile } from "src/utils/file-storage/s3";
 import { Route } from "./entities/route.entity";
-import { DeliveryAgent } from "../delivery-agents/entities/delivery-agents.entity";
-import { Announcement } from "../announcements/entities/announcement.entity";
 import { AnnouncementStatus } from "src/types/announcement";
 import { DeliveryStatus } from "src/types/delivery";
 import { DeliveryAgentsService } from "../delivery-agents/delivery-agents.service";
@@ -37,6 +35,8 @@ export class DeliveriesService {
     @Inject(forwardRef(() => AnnouncementsService))
     private readonly announcementService: AnnouncementsService
   ) {}
+
+  // Deliveries
 
   async createDeliveryWithPackages(
     announcementId: number,
@@ -134,6 +134,11 @@ export class DeliveriesService {
     return results;
   }
 
+  async getDelivery(id: number) {
+    return this.findOne(id);
+  }
+
+  // Routes
   async getRoutesByAgentId(id: number) {
     return this.findRoutesByAgentId(id);
   }
@@ -181,10 +186,6 @@ export class DeliveriesService {
   }
 
   async findAvailableDeliveries(id: number, city?: string, maxRadius?: number) {
-    const deliveryAgent =
-      await this.deliveryAgentService.findOneByIdWithAllRelations(id);
-
-    // Calculate date range (now to now + 7 days)
     const now = new Date();
     const sevenDaysFromNow = new Date();
     sevenDaysFromNow.setDate(now.getDate() + 7);
@@ -248,7 +249,7 @@ export class DeliveriesService {
   async findOne(id: number) {
     return await this.deliveriesRepository.findOne({
       where: { id },
-      relations: ["customer", "deliveryAgent", "packages"],
+      relations: ["delivery_agent", "packages"],
     });
   }
 

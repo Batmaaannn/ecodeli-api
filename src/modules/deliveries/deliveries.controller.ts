@@ -18,6 +18,7 @@ import { UsersService } from "../users/users.service";
 import { UpdateDeliveryDto } from "./dto/update-delivery.dto";
 import { CreateRouteDto } from "./dto/create-route.dto";
 
+@Roles(UserType.DELIVERY_AGENT)
 @Controller("deliveries")
 export class DeliveriesController {
   constructor(
@@ -25,8 +26,9 @@ export class DeliveriesController {
     private readonly usersService: UsersService
   ) {}
 
+  // Deliveries
+
   @Get()
-  @Roles(UserType.DELIVERY_AGENT)
   async fetchAvailableDeliveries(
     @Request() req,
     @Query("city") city?: string,
@@ -49,8 +51,12 @@ export class DeliveriesController {
     );
   }
 
+  @Get("details/:id")
+  async getDelivery(@Param("id", ParseIntPipe) id: number) {
+    return this.deliveriesService.getDelivery(id);
+  }
+
   @Post("assign")
-  @Roles(UserType.DELIVERY_AGENT)
   async assignDeliveriesToAgent(
     @Request() req: any,
     @Body("deliveryIds") updateDeliveryDto: UpdateDeliveryDto[]
@@ -71,8 +77,9 @@ export class DeliveriesController {
     );
   }
 
+  // Routes
+
   @Get("trips")
-  @Roles(UserType.DELIVERY_AGENT)
   async getRoutes(@Request() req) {
     const { userId } = req.user;
 
@@ -84,13 +91,10 @@ export class DeliveriesController {
       );
     }
 
-    return this.deliveriesService.getRoutesByAgentId(
-      user.delivery_agent_id
-    );
+    return this.deliveriesService.getRoutesByAgentId(user.delivery_agent_id);
   }
 
   @Post("route")
-  @Roles(UserType.DELIVERY_AGENT)
   async createRoute(@Request() req, @Body() createRouteDto: CreateRouteDto) {
     const { userId } = req.user;
 
@@ -109,7 +113,6 @@ export class DeliveriesController {
   }
 
   @Delete("route/:id")
-  @Roles(UserType.DELIVERY_AGENT)
   async deleteRoute(
     @Request() req,
     @Param("id", ParseIntPipe) routeId: number
