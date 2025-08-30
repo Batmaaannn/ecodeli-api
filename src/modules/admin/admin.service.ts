@@ -6,6 +6,7 @@ import { ServiceAgent } from '../service-agents/entities/service-agents.entity';
 import { ServiceAgentPrestation } from '../prestations/entities/service-agent-prestation.entity';
 import { Prestation } from '../prestations/entities/prestations.entity';
 import { DeliveryAgent } from '../delivery-agents/entities/delivery-agents.entity';
+import { PrestationStatus } from 'src/types/prestation';
 
 @Injectable()
 export class AdminService {
@@ -53,20 +54,20 @@ export class AdminService {
     return { success: true };
   }
 
-  async addServiceAgentPrestation(serviceAgentId: number, data: {
-    prestationId: number;
-    requested_price: number;
-  }) {
-    const newPrestation = this.serviceAgentPrestationRepository.create({
-      service_agent_id: serviceAgentId,
-      prestation_id: data.prestationId,
-      requested_price: data.requested_price,
-      applied_price: 0,
-      price_status: 'PENDING',
-      is_available: true
-    });
-    return await this.serviceAgentPrestationRepository.save(newPrestation);
-  }
+async addServiceAgentPrestation(serviceAgentId: number, data: {
+  prestationId: number;
+  requested_price: number;
+}) {
+  const newPrestation = this.serviceAgentPrestationRepository.create({
+    service_agent_id: serviceAgentId,  
+    prestation_id: data.prestationId,  
+    requested_price: data.requested_price,
+    applied_price: 0,
+    price_status: PrestationStatus.PENDING,  
+    is_available: true
+  });
+  return await this.serviceAgentPrestationRepository.save(newPrestation);
+}
 
   async getAllPrestations() {
     return await this.prestationRepository.find();

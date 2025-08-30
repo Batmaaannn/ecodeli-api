@@ -7,7 +7,10 @@ import {
   Query,
   DefaultValuePipe,
   Patch,
+  Body,
+  Post
 } from "@nestjs/common";
+
 import { ApiBearerAuth, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { UsersService } from "../users/users.service";
 import { UserType } from "src/types/user";
