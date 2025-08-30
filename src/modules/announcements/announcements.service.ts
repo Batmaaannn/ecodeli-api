@@ -1,6 +1,6 @@
 import { forwardRef, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { LessThan, MoreThan, Repository } from "typeorm";
+import { LessThan, MoreThan, Not, Repository } from "typeorm";
 import { Announcement } from "./entities/announcement.entity";
 import { AnnouncementStatus } from "src/types/announcement";
 import { CreateAnnouncementDto } from "./dto/create-announcement.dto";
@@ -100,7 +100,11 @@ export class AnnouncementsService {
 
   async findFuturesByCustomer(customerId: number): Promise<Announcement[]> {
     return await this.announcementRepository.find({
-      where: { customer_id: customerId, delivery_date: MoreThan(new Date()) },
+      where: {
+        customer_id: customerId,
+        delivery_date: MoreThan(new Date()),
+        status: Not(AnnouncementStatus.CANCELLED),
+      },
       relations: ["customer", "deliveries"],
       order: { created_at: "DESC" },
     });

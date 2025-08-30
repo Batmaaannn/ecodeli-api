@@ -6,7 +6,7 @@ import {
   Injectable,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, Between, MoreThanOrEqual, In } from "typeorm";
+import { Repository, Between, In } from "typeorm";
 import { UpdateDeliveryDto } from "./dto/update-delivery.dto";
 import { Delivery } from "./entities/delivery.entity";
 import { Package } from "./entities/package.entity";
@@ -14,14 +14,14 @@ import { ObjectDto } from "../announcements/dto/create-announcement.dto";
 import { generateTrackingCode } from "src/utils/tracking";
 import slugify from "slugify";
 import { convertToMulterFile } from "src/utils/file-storage/convert";
-import { processFile } from "src/utils/file-storage/s3";
+import { processFile, getFileSignedUrl } from "src/utils/file-storage/s3";
 import { Route } from "./entities/route.entity";
-import { DeliveryAgent } from "../delivery-agents/entities/delivery-agents.entity";
-import { Announcement } from "../announcements/entities/announcement.entity";
 import { AnnouncementStatus } from "src/types/announcement";
-import { DeliveryStatus } from "src/types/delivery";
+import { DeliveryStatus, DeliveryType } from "src/types/delivery";
 import { DeliveryAgentsService } from "../delivery-agents/delivery-agents.service";
 import { AnnouncementsService } from "../announcements/announcements.service";
+import { CreateRouteDto } from "./dto/create-route.dto";
+import config from "src/config";
 
 @Injectable()
 export class DeliveriesService {
@@ -36,6 +36,8 @@ export class DeliveriesService {
     @Inject(forwardRef(() => AnnouncementsService))
     private readonly announcementService: AnnouncementsService
   ) {}
+
+  // Deliveries
 
   async createDeliveryWithPackages(
     announcementId: number,
@@ -89,12 +91,24 @@ export class DeliveriesService {
       throw new HttpException("Delivery agent not found", HttpStatus.NOT_FOUND);
     }
 
-    const deliveries = await this.findByIds(
-      updateDeliveryDto.map((dto) => dto.deliveryId)
-    );
+    const deliveries = await this.deliveriesRepository.find({
+      where: { id: In(updateDeliveryDto.map((dto) => dto.deliveryId)) },
+      relations: ["announcement", "packages"],
+    });
 
     const results = [];
-    for (const delivery of deliveries) {
+
+    for (const dto of updateDeliveryDto) {
+      const delivery = deliveries.find((d) => d.id === dto.deliveryId);
+
+      if (!delivery) {
+        results.push({
+          deliveryId: dto.deliveryId,
+          error: "Delivery not found",
+        });
+        continue;
+      }
+
       if (delivery.delivery_agent_id) {
         results.push({
           deliveryId: delivery.id,
@@ -119,18 +133,324 @@ export class DeliveriesService {
         continue;
       }
 
-      delivery.delivery_agent_id = deliveryAgent.id;
-      delivery.status = DeliveryStatus.ASSIGNED;
+      // Handle partial delivery - create a new delivery and update original
+      if (dto.type === DeliveryType.PARTIAL && dto.intermediateCity) {
+        // First, update the original delivery to be partial (from origin to intermediate city)
+        delivery.delivery_agent_id = deliveryAgent.id;
+        delivery.status = DeliveryStatus.ASSIGNED;
+        delivery.delivery_type = DeliveryType.PARTIAL;
+        delivery.intermediate_city = dto.intermediateCity;
 
-      await this.deliveriesRepository.save(delivery);
+        await this.deliveriesRepository.save(delivery);
 
-      results.push({
-        deliveryId: delivery.id,
-        status: "assigned",
-      });
+        // Create a new delivery for the second part (from intermediate city to final destination)
+        const newDelivery = this.deliveriesRepository.create({
+          delivery_type: DeliveryType.PARTIAL,
+          tracking_code: generateTrackingCode(),
+          status: DeliveryStatus.PENDING, // Still pending as no one assigned yet
+          announcement_id: delivery.announcement_id,
+          intermediate_city: dto.intermediateCity, // This delivery starts from intermediate city
+        });
+
+        const savedDelivery = await this.deliveriesRepository.save(newDelivery);
+
+        // Packages should already be loaded from the relation above
+
+        // Copy packages to the new partial delivery
+        if (delivery.packages && delivery.packages.length > 0) {
+          for (const originalPackage of delivery.packages) {
+            const newPackage = this.packageRepository.create({
+              weight: originalPackage.weight,
+              length: originalPackage.length,
+              width: originalPackage.width,
+              height: originalPackage.height,
+              quantity: originalPackage.quantity,
+              photos: originalPackage.photos,
+              fragile: originalPackage.fragile,
+              delivery_id: savedDelivery.id,
+            });
+            await this.packageRepository.save(newPackage);
+          }
+        }
+
+        results.push({
+          deliveryId: delivery.id,
+          newDeliveryId: savedDelivery.id,
+          type: DeliveryType.PARTIAL,
+          intermediateCity: dto.intermediateCity,
+          status: DeliveryStatus.ASSIGNED,
+          description: `Partial delivery assigned from origin to ${dto.intermediateCity}. New delivery created for ${dto.intermediateCity} to destination.`,
+        });
+      } else {
+        // Handle full delivery - update existing delivery
+        delivery.delivery_agent_id = deliveryAgent.id;
+        delivery.status = DeliveryStatus.ASSIGNED;
+        delivery.delivery_type = DeliveryType.FULL;
+
+        await this.deliveriesRepository.save(delivery);
+
+        results.push({
+          deliveryId: delivery.id,
+          type: DeliveryType.FULL,
+          status: DeliveryStatus.ASSIGNED,
+        });
+      }
     }
 
     return results;
+  }
+
+  async getDelivery(id: number) {
+    const delivery = await this.findOne(id);
+
+    if (!delivery)
+      return new HttpException("Delivery not found", HttpStatus.NOT_FOUND);
+
+    if (delivery.packages && delivery.packages.length > 0) {
+      for (const pkg of delivery.packages) {
+        if (pkg.photos) {
+          try {
+            // Generate signed URL from the stored file path
+            pkg.photos = await getFileSignedUrl(
+              pkg.photos,
+              config.storage.bucket
+            );
+          } catch (error) {
+            console.error(
+              `Error generating signed URL for package ${pkg.id}:`,
+              error
+            );
+            // Keep the original path if URL generation fails
+          }
+        }
+      }
+    }
+
+    return delivery;
+  }
+
+  async findPastDeliveries(id: number) {
+    const pastDeliveries = await this.deliveriesRepository.find({
+      where: {
+        delivery_agent_id: id,
+        status: DeliveryStatus.DELIVERED,
+      },
+      relations: ["announcement", "ratings", "packages"],
+    });
+    return pastDeliveries;
+  }
+
+  async findActiveDeliveries(id: number) {
+    const activeDeliveries = await this.deliveriesRepository.find({
+      where: {
+        delivery_agent_id: id,
+        status: In([
+          DeliveryStatus.ASSIGNED,
+          DeliveryStatus.PICKED_UP,
+          DeliveryStatus.IN_TRANSIT,
+        ]),
+      },
+      relations: ["announcement", "packages"],
+      order: {
+        created_at: "DESC",
+      },
+    });
+    return activeDeliveries;
+  }
+
+  async getDashboardStats(agentId: number) {
+    // Count active deliveries
+    const activeDeliveriesCount = await this.deliveriesRepository.count({
+      where: {
+        delivery_agent_id: agentId,
+        status: In([
+          DeliveryStatus.ASSIGNED,
+          DeliveryStatus.PICKED_UP,
+          DeliveryStatus.IN_TRANSIT,
+        ]),
+      },
+    });
+
+    // Count completed deliveries
+    const completedDeliveriesCount = await this.deliveriesRepository.count({
+      where: {
+        delivery_agent_id: agentId,
+        status: DeliveryStatus.DELIVERED,
+      },
+    });
+
+    // Calculate average rating
+    const deliveriesWithRatings = await this.deliveriesRepository.find({
+      where: {
+        delivery_agent_id: agentId,
+        status: DeliveryStatus.DELIVERED,
+      },
+      relations: ["ratings"],
+    });
+
+    let totalRating = 0;
+    let totalReviews = 0;
+
+    deliveriesWithRatings.forEach((delivery) => {
+      if (delivery.ratings && delivery.ratings.length > 0) {
+        delivery.ratings.forEach((rating) => {
+          totalRating += rating.rating;
+          totalReviews++;
+        });
+      }
+    });
+
+    const averageRating = totalReviews > 0 ? totalRating / totalReviews : 0;
+
+    // Calculate monthly earnings (mock calculation - you'll need to implement based on your pricing model)
+    const currentMonth = new Date();
+    const firstDayOfMonth = new Date(
+      currentMonth.getFullYear(),
+      currentMonth.getMonth(),
+      1
+    );
+
+    const monthlyDeliveries = await this.deliveriesRepository.find({
+      where: {
+        delivery_agent_id: agentId,
+        status: DeliveryStatus.DELIVERED,
+        delivery_time: Between(firstDayOfMonth, new Date()),
+      },
+      relations: ["announcement"],
+    });
+
+    const monthlyEarnings = monthlyDeliveries.reduce((total, delivery) => {
+      // Assume 70% of announcement price goes to delivery agent
+      return total + (delivery.announcement?.price * 0.7 || 0);
+    }, 0);
+
+    return {
+      activeDeliveries: activeDeliveriesCount,
+      completedDeliveries: completedDeliveriesCount,
+      averageRating: Math.round(averageRating * 10) / 10,
+      monthlyEarnings: Math.round(monthlyEarnings),
+    };
+  }
+
+  async getRecentReviews(agentId: number) {
+    const deliveriesWithReviews = await this.deliveriesRepository.find({
+      where: {
+        delivery_agent_id: agentId,
+        status: DeliveryStatus.DELIVERED,
+      },
+      relations: ["ratings"],
+      order: {
+        delivery_time: "DESC",
+      },
+      take: 10,
+    });
+
+    const reviews = [];
+
+    deliveriesWithReviews.forEach((delivery) => {
+      if (delivery.ratings && delivery.ratings.length > 0) {
+        delivery.ratings.forEach((rating) => {
+          reviews.push({
+            id: rating.id,
+            score: rating.rating,
+            comment: rating.comment,
+            created_at: rating.created_at,
+            deliveryId: delivery.id,
+            trackingCode: delivery.tracking_code,
+          });
+        });
+      }
+    });
+
+    // Sort by creation date and limit to 5 most recent
+    return reviews
+      .sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      )
+      .slice(0, 5);
+  }
+
+  // Routes
+  async getRoutesByAgentId(id: number) {
+    return this.findRoutesByAgentId(id);
+  }
+
+  async createRoute(createRouteDto: CreateRouteDto, userId: number) {
+    const {
+      departureCity,
+      arrivalCity,
+      departureDate,
+      arrivalDate,
+      maxPackages,
+    } = createRouteDto;
+
+    const deliveryAgent =
+      await this.deliveryAgentService.findOneByIdWithAllRelations(userId);
+
+    if (!deliveryAgent) {
+      throw new HttpException("Delivery agent not found", HttpStatus.NOT_FOUND);
+    }
+
+    const route = this.routeRepository.create({
+      departure_city: departureCity,
+      arrival_city: arrivalCity,
+      departure_date: departureDate,
+      arrival_date: arrivalDate,
+      max_packages: maxPackages,
+      delivery_agent_id: deliveryAgent.id,
+    });
+
+    return this.routeRepository.save(route);
+  }
+
+  async deleteRouteById(id: number) {
+    const route = await this.findOneRoute(id);
+    if (!route) {
+      throw new HttpException("Route not found", HttpStatus.NOT_FOUND);
+    }
+
+    return this.routeRepository.remove(route);
+  }
+
+  async updateDeliveryStatus(deliveryId: number) {
+    const delivery = await this.deliveriesRepository.findOne({
+      where: { id: deliveryId },
+      relations: ["announcement"],
+    });
+
+    if (!delivery) {
+      throw new HttpException("Delivery not found", HttpStatus.NOT_FOUND);
+    }
+
+    if (delivery.status === DeliveryStatus.ASSIGNED) {
+      delivery.status = DeliveryStatus.PICKED_UP;
+      delivery.pickup_time = new Date();
+      return this.deliveriesRepository.save(delivery);
+    } else if (delivery.status === DeliveryStatus.PICKED_UP) {
+      delivery.status = DeliveryStatus.IN_TRANSIT;
+      
+      // Update announcement status to IN_PROGRESS
+      if (delivery.announcement) {
+        await this.announcementService.update(delivery.announcement.id, {
+          status: AnnouncementStatus.IN_PROGRESS,
+        });
+      }
+      
+      return this.deliveriesRepository.save(delivery);
+    } else if (delivery.status === DeliveryStatus.IN_TRANSIT) {
+      delivery.status = DeliveryStatus.DELIVERED;
+      delivery.delivery_time = new Date();
+
+      // Update announcement status to DELIVERED
+      if (delivery.announcement) {
+        await this.announcementService.update(delivery.announcement.id, {
+          status: AnnouncementStatus.DELIVERED,
+        });
+      }
+
+      return this.deliveriesRepository.save(delivery);
+    }
   }
 
   /* Db Requests */
@@ -138,86 +458,104 @@ export class DeliveriesService {
     return this.deliveriesRepository.find({ relations: ["customer"] });
   }
 
-  async findAvailableDeliveries(id: number, city?: string, maxRadius?: number) {
-    const deliveryAgent =
-      await this.deliveryAgentService.findOneByIdWithAllRelations(id);
-
-    // Calculate date range (now to now + 7 days)
+  async findAvailableDeliveries(
+    agentId: number,
+    city?: string,
+    maxRadius?: number
+  ) {
+    // Note: agentId and maxRadius parameters are available for future filtering logic
     const now = new Date();
     const sevenDaysFromNow = new Date();
     sevenDaysFromNow.setDate(now.getDate() + 7);
 
-    // Build query conditions
-    const whereConditions: any = {
-      status: AnnouncementStatus.POSTED,
-      pickup_date: Between(now, sevenDaysFromNow),
-    };
+    // Build the query with delivery as base entity and join announcement
+    const queryBuilder = this.deliveriesRepository
+      .createQueryBuilder("delivery")
+      .leftJoinAndSelect("delivery.announcement", "announcement")
+      .leftJoinAndSelect("delivery.packages", "packages")
+      .where("delivery.status = :status", { status: DeliveryStatus.PENDING })
+      .andWhere("delivery.delivery_agent_id IS NULL")
+      .andWhere("announcement.status = :announcementStatus", {
+        announcementStatus: AnnouncementStatus.POSTED,
+      })
+      .andWhere("announcement.pickup_date BETWEEN :now AND :sevenDaysFromNow", {
+        now,
+        sevenDaysFromNow,
+      });
 
     // Add city filter if provided
     if (city) {
-      whereConditions.departure_city = city;
+      queryBuilder.andWhere("announcement.departure_city ILIKE :city", {
+        city: `%${city}%`,
+      });
     }
 
-    // Find available announcements
-    const availableAnnouncements =
-      await this.announcementService.findManyByConditions(whereConditions);
+    const availableDeliveries = await queryBuilder.getMany();
 
-    // Filter announcements that don't have assigned deliveries or have pending deliveries
-    const availableForDelivery = availableAnnouncements.filter(
-      (announcement) => {
-        // Check if all deliveries are still pending (not assigned to a delivery agent)
-        return announcement.deliveries.every(
-          (delivery) =>
-            delivery.status === DeliveryStatus.PENDING &&
-            !delivery.delivery_agent_id
-        );
-      }
-    );
-
-    // TODO: If radius filter is provided, we would need to implement distance calculation
-    // This would require geocoding or storing coordinates for cities
-    // For now, we'll return results based on city match only
-
-    return availableForDelivery.map((announcement) => ({
-      announcementId: announcement.id,
-      title: announcement.title,
-      description: announcement.description,
-      departureCity: announcement.departure_city,
-      arrivalCity: announcement.arrival_city,
-      price: announcement.price,
-      pickupDate: announcement.pickup_date,
-      deliveryDate: announcement.delivery_date,
-      urgent: announcement.urgent,
-      assurance: announcement.assurance,
-      pickupInstructions: announcement.pickup_instructions,
-      customer: {
-        firstName: announcement.customer.first_name,
-        lastName: announcement.customer.last_name,
-      },
-      deliveries: announcement.deliveries.map((delivery) => ({
-        id: delivery.id,
-        trackingCode: delivery.tracking_code,
-        status: delivery.status,
-        deliveryType: delivery.delivery_type,
-      })),
+    // Return deliveries with announcement data
+    return availableDeliveries.map((delivery) => ({
+      id: delivery.id,
+      announcementId: delivery.announcement.id,
+      trackingCode: delivery.tracking_code,
+      status: delivery.status,
+      deliveryType: delivery.delivery_type,
+      intermediateCity: delivery.intermediate_city,
+      title: delivery.announcement.title,
+      description: delivery.announcement.description,
+      departureCity: delivery.announcement.departure_city,
+      arrivalCity: delivery.announcement.arrival_city,
+      price: delivery.announcement.price,
+      pickupDate: delivery.announcement.pickup_date,
+      deliveryDate: delivery.announcement.delivery_date,
+      urgent: delivery.announcement.urgent,
+      assurance: delivery.announcement.assurance,
+      pickupInstructions: delivery.announcement.pickup_instructions,
+      packagesCount: delivery.packages?.length || 0,
     }));
   }
 
   async findOne(id: number) {
-    const delivery = await this.deliveriesRepository.findOne({
+    return await this.deliveriesRepository.findOne({
       where: { id },
-      relations: ["customer", "deliveryAgent", "packages"],
+      relations: [
+        "delivery_agent",
+        "packages",
+        "announcement",
+        "announcement.customer",
+      ],
     });
-    if (!delivery) {
-      throw new HttpException("Delivery not found", HttpStatus.NOT_FOUND);
-    }
-    return delivery;
+  }
+
+  async findOneByAnnouncementId(announcementId: number) {
+    return await this.deliveriesRepository.findOne({
+      where: { announcement: { id: announcementId } },
+      relations: [
+        "delivery_agent",
+        "packages",
+        "announcement",
+        "announcement.customer",
+      ],
+    });
+  }
+
+  async findOneRoute(id: number) {
+    return await this.routeRepository.findOne({
+      where: { id },
+    });
   }
 
   async findByIds(ids: number[]) {
     return await this.deliveriesRepository.find({
       where: { id: In(ids) },
       relations: ["announcement"],
+    });
+  }
+
+  async findRoutesByAgentId(id: number) {
+    return this.routeRepository.find({
+      where: {
+        delivery_agent_id: id,
+      },
     });
   }
 
@@ -231,10 +569,11 @@ export class DeliveriesService {
   }
 
   async remove(id: number) {
-    const delivery = await this.deliveriesRepository.findOne({ where: { id } });
+    const delivery = await this.findOne(id);
     if (!delivery) {
       throw new HttpException("Delivery not found", HttpStatus.NOT_FOUND);
     }
+
     return this.deliveriesRepository.remove(delivery);
   }
 }

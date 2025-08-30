@@ -117,17 +117,20 @@ export class DeliveryAgentsService {
       companyCity,
       vehiculeType,
       schedule,
+      maxRadiusKm,
+      favoriteDeliveryCity,
     } = updateDeliveryAgentDto;
 
     const deliveryAgentToUpdate = await this.findOneByIdWithAllRelations(id);
     if (!deliveryAgentToUpdate) {
       return null;
     }
-    console.log(1);
+
+
     await this.usersService.updateOneById(deliveryAgentToUpdate.user.id, {
       email,
     });
-    console.log(2);
+
     await this.updateOneById(deliveryAgentToUpdate.id, {
       first_name: firstName,
       last_name: lastName,
@@ -135,13 +138,14 @@ export class DeliveryAgentsService {
       company_address: companyAddress,
       company_city: companyCity,
       vehicle_type: vehiculeType,
+      max_radius_km: +maxRadiusKm,
+      favorite_delivery_city: favoriteDeliveryCity,
+      has_completed_profile: true,
     });
-    console.log(3);
 
     if (schedule) {
       await this.upsertSchedule(deliveryAgentToUpdate.id, schedule);
     }
-    console.log(4);
     return this.findOneByIdWithAllRelations(deliveryAgentToUpdate.id);
   }
 
