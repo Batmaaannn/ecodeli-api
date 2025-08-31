@@ -32,7 +32,7 @@ export class AdminService {
   async getServiceAgentById(id: number) {
     return await this.serviceAgentRepository.findOne({
       where: { id },
-      relations: ['user', 'files', 'serviceAgentPrestations', 'serviceAgentPrestations.prestation']
+      relations: ['user', 'serviceAgentPrestations', 'serviceAgentPrestations.prestation']
     });
   }
 
