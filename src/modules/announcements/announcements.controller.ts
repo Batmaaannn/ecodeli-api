@@ -21,6 +21,7 @@ import { FormDataRequest } from "nestjs-form-data";
 import { Roles } from "../auth/decorator/roles.decorator";
 import { UserType } from "src/types/user";
 import { UsersService } from "../users/users.service";
+import { BadRequestException } from '@nestjs/common';
 
 @Controller("announcements")
 export class AnnouncementsController {
@@ -29,15 +30,20 @@ export class AnnouncementsController {
     private readonly usersService: UsersService
   ) {}
 
-  @Post()
-  @Roles(UserType.CUSTOMER)
-  @FormDataRequest()
-  create(@Request() req, @Body() createAnnouncementDto: CreateAnnouncementDto) {
-    const { userId } = req.user;
-
-    return this.announcementsService.create(userId, createAnnouncementDto);
+@Post()
+@Roles(UserType.CUSTOMER)
+@FormDataRequest()
+async create(@Request() req, @Body() createAnnouncementDto: CreateAnnouncementDto) {
+  const { userId } = req.user;
+  
+  const userWithRelations = await this.usersService.findOneByIdWithAllRelations(userId);
+  
+  if (!userWithRelations?.customer) {
+    throw new BadRequestException('Aucun profil client trouvé pour cet utilisateur');
   }
-
+  
+  return this.announcementsService.create(userWithRelations.customer.id, createAnnouncementDto);
+}
   @Get()
   findAll(@Query("status") status?: AnnouncementStatus) {
     if (status) {

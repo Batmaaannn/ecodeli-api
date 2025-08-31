@@ -12,7 +12,7 @@ import * as session from "express-session";
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const whitelist = ["http://192.168.1.36:8080", "http://localhost:5173"];
+  const whitelist = ["https://ecodeli.grados.fr", "http://localhost:5173"];
 
   app.enableCors({
     origin: (origin, cb) => {

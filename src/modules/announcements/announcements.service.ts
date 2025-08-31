@@ -5,6 +5,7 @@ import { Announcement } from "./entities/announcement.entity";
 import { AnnouncementStatus } from "src/types/announcement";
 import { CreateAnnouncementDto } from "./dto/create-announcement.dto";
 import { DeliveriesService } from "../deliveries/deliveries.service";
+import { Customer } from "../customers/entities/customer.entity";
 
 export interface UpdateAnnouncementDto {
   title?: string;
@@ -22,9 +23,11 @@ export interface UpdateAnnouncementDto {
 
 @Injectable()
 export class AnnouncementsService {
+  customerRepository: any;
   constructor(
     @InjectRepository(Announcement)
     private announcementRepository: Repository<Announcement>,
+     @InjectRepository(Customer)
     @Inject(forwardRef(() => DeliveriesService))
     private readonly deliveriesService: DeliveriesService
   ) {}
@@ -33,6 +36,12 @@ export class AnnouncementsService {
     customerId: number,
     createAnnouncementDto: CreateAnnouncementDto
   ) {
+       const customer = await this.customerRepository.findOne({
+      where: { id: customerId }
+    });
+ if (!customer) {
+      throw new Error(`Customer with ID ${customerId} not found`);
+    }
     const { objects, ...announcementData } = createAnnouncementDto;
 
     const createdAnnouncement = await this.insertOne({
