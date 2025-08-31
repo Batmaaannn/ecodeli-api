@@ -12,9 +12,22 @@ import * as session from "express-session";
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  const whitelist = ["http://192.168.1.36:8080", "http://localhost:5173"];
+
   app.enableCors({
-    origin: "http://localhost:5173", // ton front
+    origin: (origin, cb) => {
+      if (!origin || whitelist.includes(origin)) return cb(null, true);
+      return cb(new Error("Not allowed by CORS"));
+    },
     credentials: true,
+    methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "Accept",
+      "Origin",
+    ],
   });
 
   app.use(
@@ -39,9 +52,6 @@ async function bootstrap() {
     })
   );
 
-  // app.use(passport.initialize());
-
-  // app.use(passport.session());
 
   app.use(cookieParser());
 
@@ -59,6 +69,6 @@ async function bootstrap() {
     SwaggerModule.setup("api", app, documentFactory);
   }
 
-  await app.listen(3000);
+  await app.listen(3000, '0.0.0.0');
 }
 bootstrap();
