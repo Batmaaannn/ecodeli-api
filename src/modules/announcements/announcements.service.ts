@@ -23,46 +23,40 @@ export interface UpdateAnnouncementDto {
 
 @Injectable()
 export class AnnouncementsService {
-  customerRepository: any;
-  constructor(
-    @InjectRepository(Announcement)
-    private announcementRepository: Repository<Announcement>,
-     @InjectRepository(Customer)
-    @Inject(forwardRef(() => DeliveriesService))
-    private readonly deliveriesService: DeliveriesService
-  ) {}
+    constructor(
+        @InjectRepository(Announcement)
+        private readonly announcementRepository: Repository<Announcement>,
 
-  async create(
-    customerId: number,
-    createAnnouncementDto: CreateAnnouncementDto
-  ) {
-       const customer = await this.customerRepository.findOne({
-      where: { id: customerId }
-    });
- if (!customer) {
-      throw new Error(`Customer with ID ${customerId} not found`);
+        @InjectRepository(Customer)
+        private readonly customerRepository: Repository<Customer>,
+
+        @Inject(forwardRef(() => DeliveriesService))
+        private readonly deliveriesService: DeliveriesService,
+    ) {}
+
+    async create(customerId: number, dto: CreateAnnouncementDto) {
+        const customer = await this.customerRepository.findOne({ where: { id: customerId } });
+        if (!customer) throw new Error(`Customer with ID ${customerId} not found`);
+
+        const { objects, ...a } = dto;
+
+        const created = await this.insertOne({
+            title: a.title,
+            description: a.description,
+            price: a.price,
+            assurance: a.assurance ?? false,
+            urgent: a.urgent ?? false,
+            customer_id: customerId,
+            departure_city: a.departureCity,
+            arrival_city: a.arrivalCity,
+            pickup_date: a.pickupDate,
+            delivery_date: a.deliveryDate,
+            pickup_instructions: a.pickupInstructions,
+        });
+
+        await this.deliveriesService.createDeliveryWithPackages(created.id, objects ?? []);
+        return created;
     }
-    const { objects, ...announcementData } = createAnnouncementDto;
-
-    const createdAnnouncement = await this.insertOne({
-      title: announcementData.title,
-      description: announcementData.description,
-      price: announcementData.price,
-      assurance: announcementData.assurance ?? false,
-      urgent: announcementData.urgent ?? false,
-      customer_id: customerId,
-      departure_city: announcementData.departureCity,
-      arrival_city: announcementData.arrivalCity,
-      pickup_date: announcementData.pickupDate,
-      delivery_date: announcementData.deliveryDate,
-      pickup_instructions: announcementData.pickupInstructions,
-    });
-
-    await this.deliveriesService.createDeliveryWithPackages(
-      createdAnnouncement.id,
-      objects
-    );
-  }
 
   /* Db Requests */
 
