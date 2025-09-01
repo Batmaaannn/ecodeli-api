@@ -1,10 +1,12 @@
-import { Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { CustomerStorageBox } from './entities/customer-storage-box.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { WarehouseStorage } from './entities/warehouse-storage.entity';
 import { BoxSize } from 'src/types/box';
 import { StoragesService } from './storages.service';
+import { BoxDto } from './dto/box.dto';
+import { Public } from '../auth/decorator/public.decorator';
 
 type BoxType = {
   warehouseId: number;
@@ -40,7 +42,9 @@ export class StoragesController {
    * Créé une réservation de box.
    */
   @Post("/create-reservation-box")
-  async createReservationBox({ warehouseId, size, rentalStart, rentalEnd }: BoxType) {
+  async createReservationBox(@Body() boxDto: BoxDto) {
+    const {warehouseId, size, rentalStart, rentalEnd } = boxDto;
+
     const foundWarehouse = await this.warehouseStorageRepository.findOneBy({
       id: warehouseId
     });
