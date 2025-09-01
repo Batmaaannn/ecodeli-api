@@ -1,4 +1,4 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Warehouse } from './entities/warehouse.entity';
 import { Repository } from 'typeorm';
@@ -13,6 +13,7 @@ export class WarehousesController {
   /**
    * Permet de récupérer les entrepôts.
    */
+  @Get("/")
   async getWarehouses(): Promise<Warehouse[]> {
     return await this.warhousesRepository.find();
   }
