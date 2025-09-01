@@ -34,6 +34,7 @@ export class CustomerStorageBox {
   @ManyToOne(() => Customer, (customer) => customer.storageBoxes)
   @JoinColumn({ name: "customer_id" })
   customer: Customer;
+  
   @Column()
   customer_id: number;
 
